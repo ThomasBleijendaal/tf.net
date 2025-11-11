@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TfNet.ResourceProvider;
+using TfNet.Providers.Resource;
 
 namespace TfNet.SampleProvider;
 

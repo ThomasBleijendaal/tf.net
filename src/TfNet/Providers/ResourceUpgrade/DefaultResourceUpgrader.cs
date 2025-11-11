@@ -1,6 +1,6 @@
 ﻿using TfNet.Serialization;
 
-namespace TfNet.ResourceProvider;
+namespace TfNet.Providers.ResourceUpgrade;
 
 /// <summary>
 /// Default implementation of a resource upgrader that does nothing, and assumes

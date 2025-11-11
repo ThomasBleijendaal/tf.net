@@ -1,4 +1,4 @@
-﻿namespace TfNet.ResourceProvider;
+﻿namespace TfNet.Providers.Data;
 
 public interface IDataSourceProvider<T>
 {

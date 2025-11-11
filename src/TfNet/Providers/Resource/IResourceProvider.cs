@@ -1,8 +1,10 @@
-﻿namespace TfNet.ResourceProvider;
+﻿using TfNet.Models;
+
+namespace TfNet.Providers.Resource;
 
 public interface IResourceProvider<T>
 {
-    Task<T> PlanAsync(T? prior, T proposed);
+    Task<PlanResult<T>> PlanAsync(T? prior, T proposed);
 
     Task<T> CreateAsync(T planned);
 

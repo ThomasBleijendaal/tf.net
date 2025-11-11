@@ -1,6 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TfNet.Extensions;
 using TfNet.ProviderConfig;
-using TfNet.ResourceProvider;
+using TfNet.Providers.Data;
+using TfNet.Providers.Resource;
+using TfNet.Providers.ResourceUpgrade;
+using TfNet.Registry;
 using TfNet.Schemas;
 using TfNet.Schemas.Types;
 using TfNet.Serialization;
@@ -16,7 +20,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddTerraformPluginCore(this IServiceCollection services)
     {
         services.AddTransient<ITerraformTypeBuilder, TerraformTypeBuilder>();
-        services.AddTransient<ISchemaBuilder, SchemaBuilder>();
         services.AddTransient(typeof(ProviderConfigurationHost<>));
         services.AddTransient(typeof(ResourceProviderHost<>));
         services.AddTransient(typeof(DataSourceProviderHost<>));
@@ -40,8 +43,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddTerraformProviderConfigurator<TConfig, TProviderConfigurator>(this IServiceCollection services)
         where TProviderConfigurator : IProviderConfigurator<TConfig>
     {
-        services.AddSingleton(s => new ProviderConfigurationRegistry(
-            ConfigurationSchema: s.GetRequiredService<ISchemaBuilder>().BuildSchema(typeof(TConfig)),
+        var schemaProviderType = typeof(TypeSchemaProvider<TConfig>);
+
+        services.AddSingleton(sp => new ProviderConfigurationRegistry(
+            SchemaProvider: sp.BuildService<TypeSchemaProvider<TConfig>>(["__provider", SchemaType.Provider]),
             ConfigurationType: typeof(TConfig)));
 
         services.AddTransient<IProviderConfigurator<TConfig>>(s => s.GetRequiredService<TProviderConfigurator>());

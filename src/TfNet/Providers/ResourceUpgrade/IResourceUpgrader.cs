@@ -1,4 +1,4 @@
-﻿namespace TfNet.ResourceProvider;
+﻿namespace TfNet.Providers.ResourceUpgrade;
 
 /// <summary>
 /// Upgrades resource state from previous schema versions to the latest version.

@@ -1,9 +1,10 @@
-﻿using TfNet.Serialization;
+﻿using TfNet.Providers.ResourceUpgrade;
+using TfNet.Serialization;
 using Tfplugin6;
 
-namespace TfNet.ResourceProvider;
+namespace TfNet.Providers.Resource;
 
-internal class ResourceProviderHost<T>
+internal class ResourceProviderHost<T> : IResourceProviderHost
 {
     private readonly IResourceProvider<T> _resourceProvider;
     private readonly IResourceUpgrader<T> _resourceUpgrader;
@@ -19,7 +20,7 @@ internal class ResourceProviderHost<T>
         _serializer = serializer;
     }
 
-    public async Task<UpgradeResourceState.Types.Response> UpgradeResourceState(UpgradeResourceState.Types.Request request)
+    public async Task<UpgradeResourceState.Types.Response> UpgradeResourceStateAsync(UpgradeResourceState.Types.Request request)
     {
         var upgraded = await _resourceUpgrader.UpgradeResourceStateAsync(request.Version, request.RawState.Json.Memory);
         var upgradedSerialized = SerializeDynamicValue(upgraded);
@@ -30,7 +31,7 @@ internal class ResourceProviderHost<T>
         };
     }
 
-    public async Task<ReadResource.Types.Response> ReadResource(ReadResource.Types.Request request)
+    public async Task<ReadResource.Types.Response> ReadResourceAsync(ReadResource.Types.Request request)
     {
         var current = DeserializeDynamicValue(request.CurrentState);
 
@@ -39,33 +40,41 @@ internal class ResourceProviderHost<T>
 
         return new ReadResource.Types.Response
         {
-            NewState = readSerialized,
+            NewState = readSerialized
         };
     }
 
-    public async Task<PlanResourceChange.Types.Response> PlanResourceChange(PlanResourceChange.Types.Request request)
+    public async Task<PlanResourceChange.Types.Response> PlanResourceChangeAsync(PlanResourceChange.Types.Request request)
     {
         var prior = DeserializeDynamicValue(request.PriorState);
         var proposed = DeserializeDynamicValue(request.ProposedNewState);
 
         var planned = await _resourceProvider.PlanAsync(prior, proposed);
-        var plannedSerialized = SerializeDynamicValue(planned);
+        var plannedSerialized = SerializeDynamicValue(planned.Value);
+        var requiresReplace = planned.RequiresReplace
+            .Where(attribute => attribute.Path.Length > 0).
+            Select(attribute =>
+            {
+                var path = new Tfplugin6.AttributePath();
+                path.Steps.AddRange(attribute.Path.Select(step => new Tfplugin6.AttributePath.Types.Step
+                {
+                    AttributeName = step
+                }));
+
+                return path;
+            });
 
         var res = new PlanResourceChange.Types.Response
         {
             PlannedState = plannedSerialized
         };
 
-        var path = new AttributePath();
-        var step = new AttributePath.Types.Step() { AttributeName = "content" };
-
-        path.Steps.Add(step);
-        res.RequiresReplace.Add(path);
+        res.RequiresReplace.AddRange(requiresReplace);
 
         return res;
     }
 
-    public async Task<ApplyResourceChange.Types.Response> ApplyResourceChange(ApplyResourceChange.Types.Request request)
+    public async Task<ApplyResourceChange.Types.Response> ApplyResourceChangeAsync(ApplyResourceChange.Types.Request request)
     {
         var prior = DeserializeDynamicValue(request.PriorState);
         var planned = DeserializeDynamicValue(request.PlannedState);
@@ -98,16 +107,29 @@ internal class ResourceProviderHost<T>
         }
     }
 
-    public async Task<ImportResourceState.Types.Response> ImportResourceState(ImportResourceState.Types.Request request)
+    public async Task<ImportResourceState.Types.Response> ImportResourceStateAsync(ImportResourceState.Types.Request request)
     {
-        var imported = await _resourceProvider.ImportAsync(request.Id);
-
         var response = new ImportResourceState.Types.Response();
-        response.ImportedResources.AddRange(imported.Select(resource => new ImportResourceState.Types.ImportedResource
+
+        try
         {
-            TypeName = request.TypeName,
-            State = SerializeDynamicValue(resource),
-        }));
+            var imported = await _resourceProvider.ImportAsync(request.Id);
+
+            response.ImportedResources.AddRange(imported.Select(resource => new ImportResourceState.Types.ImportedResource
+            {
+                TypeName = request.TypeName,
+                State = SerializeDynamicValue(resource),
+            }));
+
+        }
+        catch (Exception ex)
+        {
+            response.Diagnostics.Add(new Diagnostic
+            {
+                Summary = ex.Message,
+                Severity = Diagnostic.Types.Severity.Error
+            });
+        }
 
         return response;
     }

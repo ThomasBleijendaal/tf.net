@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TfNet;
-using TfNet.ResourceProvider;
-using TfNet.SampleProvider;
+using TfNet.Providers.Resource;
+using TfNet.Registry;
 using TfNet.Testing;
 
-namespace SampleProvider.Test;
+namespace TfNet.SampleProvider.Tests;
 
 [TestFixture(Category = "Functional", Explicit = true)]
 public class SampleProviderTest
@@ -29,8 +28,11 @@ public class SampleProviderTest
     private void Configure(IServiceCollection services, IResourceRegistryContext registryContext)
     {
         services.AddSingleton<SampleConfigurator>();
+
         services.AddTerraformProviderConfigurator<Configuration, SampleConfigurator>();
+
         services.AddSingleton<IResourceProvider<SampleFileResource>, SampleFileResourceProvider>();
+
         registryContext.RegisterResource<SampleFileResource>($"{ProviderName}_file");
     }
 

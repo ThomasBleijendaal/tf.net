@@ -9,19 +9,39 @@ using KeyAttribute = MessagePack.KeyAttribute;
 
 namespace TfNet.Schemas;
 
-internal class SchemaBuilder : ISchemaBuilder
+internal class TypeSchemaProvider<T> : ISchemaProvider
 {
-    private readonly ILogger<SchemaBuilder> _logger;
+    private readonly ILogger<TypeSchemaProvider<T>> _logger;
     private readonly ITerraformTypeBuilder _typeBuilder;
 
-    public SchemaBuilder(ILogger<SchemaBuilder> logger, ITerraformTypeBuilder typeBuilder)
+    private Schema? _schema;
+
+    public TypeSchemaProvider(
+        string schemaName,
+        SchemaType schemaType,
+        ILogger<TypeSchemaProvider<T>> logger,
+        ITerraformTypeBuilder typeBuilder)
     {
         _logger = logger;
         _typeBuilder = typeBuilder;
+
+        SchemaName = schemaName;
+        Type = schemaType;
     }
 
-    public Schema BuildSchema(Type type)
+    public string SchemaName { get; }
+
+    public SchemaType Type { get; }
+
+    public ValueTask<Schema> GetSchemaAsync()
     {
+        if (_schema != null)
+        {
+            return ValueTask.FromResult(_schema);
+        }
+
+        var type = typeof(T);
+
         var schemaVersionAttribute = type.GetCustomAttribute<SchemaVersionAttribute>();
         if (schemaVersionAttribute == null)
         {
@@ -53,14 +73,15 @@ internal class SchemaBuilder : ISchemaBuilder
                 Optional = !required,
                 Required = required,
                 Computed = computed,
-
             });
         }
 
-        return new Schema
+        _schema = new Schema
         {
             Version = schemaVersionAttribute?.SchemaVersion ?? 0,
             Block = block,
         };
+
+        return ValueTask.FromResult(_schema);
     }
 }

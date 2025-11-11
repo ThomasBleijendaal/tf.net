@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TfNet.ProviderConfig;
-using TfNet.ResourceProvider;
+using TfNet.Providers.Data;
+using TfNet.Providers.Resource;
+using TfNet.Registry;
 using Tfplugin6;
 
 namespace TfNet.Services;
@@ -38,7 +40,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
         var configurationHostType = typeof(ProviderConfigurationHost<>).MakeGenericType(_providerConfiguration.ConfigurationType);
         var configurationHost = _serviceProvider.GetService(configurationHostType);
-        await (Task)configurationHostType.GetMethod(nameof(ProviderConfigurationHost<object>.ConfigureAsync))!
+        await (Task)configurationHostType.GetMethod(nameof(ProviderConfigurationHost<>.ConfigureAsync))!
             .Invoke(configurationHost, new[] { request })!;
         return new ConfigureProvider.Types.Response { };
     }
@@ -57,44 +59,38 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
         return Task.FromResult(res);
     }
 
-    public override Task<GetProviderSchema.Types.Response> GetProviderSchema(GetProviderSchema.Types.Request request, ServerCallContext context)
+    public override async Task<GetProviderSchema.Types.Response> GetProviderSchema(GetProviderSchema.Types.Request request, ServerCallContext context)
     {
         var res = new GetProviderSchema.Types.Response
         {
-            Provider = _providerConfiguration?.ConfigurationSchema ?? new Schema { Block = new Schema.Types.Block { } },
+            Provider = _providerConfiguration == null
+                ? new Schema { Block = new Schema.Types.Block { } }
+                : await _providerConfiguration.SchemaProvider.GetSchemaAsync(),
         };
 
-        foreach (var schema in _resourceRegistry.Schemas)
+        await foreach (var (key, schema) in _resourceRegistry.GetSchemasAsync())
         {
-            res.ResourceSchemas.Add(schema.Key, schema.Value);
+            res.ResourceSchemas.Add(key, schema);
         }
 
-        foreach (var schema in _resourceRegistry.DataSchemas)
+        await foreach (var (key, schema) in _resourceRegistry.GetDataSchemasAsync())
         {
-            res.DataSourceSchemas.Add(schema.Key, schema.Value);
+            res.DataSourceSchemas.Add(key, schema);
         }
 
-        return Task.FromResult(res);
+        return res;
     }
 
-    public override Task<PlanResourceChange.Types.Response> PlanResourceChange(PlanResourceChange.Types.Request request, ServerCallContext context)
-    {
-        if (!_resourceRegistry.Types.TryGetValue(request.TypeName, out var resourceType))
-        {
-            return Task.FromResult(new Tfplugin6.PlanResourceChange.Types.Response
+    public override async Task<PlanResourceChange.Types.Response> PlanResourceChange(PlanResourceChange.Types.Request request, ServerCallContext context)
+        => _resourceRegistry.GetResourceProvider(request.TypeName) is { } provider
+            ? await provider.PlanResourceChangeAsync(request)
+            : new()
             {
                 Diagnostics =
-                    {
-                        new Diagnostic { Detail = "Unknown type name." },
-                    },
-            });
-        }
-
-        var providerHostType = typeof(ResourceProviderHost<>).MakeGenericType(resourceType);
-        var provider = _serviceProvider.GetService(providerHostType);
-        return (Task<PlanResourceChange.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.PlanResourceChange))!
-            .Invoke(provider, new[] { request })!;
-    }
+                {
+                    new Diagnostic { Detail = "Unknown type name." },
+                }
+            };
 
     public override Task<ApplyResourceChange.Types.Response> ApplyResourceChange(ApplyResourceChange.Types.Request request, ServerCallContext context)
     {
@@ -111,7 +107,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
         var providerHostType = typeof(ResourceProviderHost<>).MakeGenericType(resourceType);
         var provider = _serviceProvider.GetService(providerHostType);
-        return (Task<ApplyResourceChange.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.ApplyResourceChange))!
+        return (Task<ApplyResourceChange.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.ApplyResourceChangeAsync))!
             .Invoke(provider, new[] { request })!;
     }
 
@@ -130,7 +126,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
         var providerHostType = typeof(ResourceProviderHost<>).MakeGenericType(resourceType);
         var provider = _serviceProvider.GetService(providerHostType);
-        return (Task<UpgradeResourceState.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.UpgradeResourceState))!
+        return (Task<UpgradeResourceState.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.UpgradeResourceStateAsync))!
             .Invoke(provider, new[] { request })!;
     }
 
@@ -149,7 +145,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
         var providerHostType = typeof(ResourceProviderHost<>).MakeGenericType(resourceType);
         var provider = _serviceProvider.GetService(providerHostType);
-        return (Task<ReadResource.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.ReadResource))!
+        return (Task<ReadResource.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.ReadResourceAsync))!
             .Invoke(provider, new[] { request })!;
     }
 
@@ -168,7 +164,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
         var providerHostType = typeof(ResourceProviderHost<>).MakeGenericType(resourceType);
         var provider = _serviceProvider.GetService(providerHostType);
-        return (Task<ImportResourceState.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.ImportResourceState))!
+        return (Task<ImportResourceState.Types.Response>)providerHostType.GetMethod(nameof(ResourceProviderHost<object>.ImportResourceStateAsync))!
             .Invoke(provider, new[] { request })!;
     }
 
@@ -208,7 +204,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
         var providerHostType = typeof(DataSourceProviderHost<>).MakeGenericType(resourceType);
         var provider = _serviceProvider.GetService(providerHostType);
-        return (Task<ReadDataSource.Types.Response>)providerHostType.GetMethod(nameof(DataSourceProviderHost<object>.ReadDataSource))!
+        return (Task<ReadDataSource.Types.Response>)providerHostType.GetMethod(nameof(DataSourceProviderHost<object>.ReadDataSourceAsync))!
             .Invoke(provider, new[] { request })!;
     }
 

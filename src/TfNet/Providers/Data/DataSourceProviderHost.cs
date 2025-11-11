@@ -1,7 +1,7 @@
 ﻿using TfNet.Serialization;
 using Tfplugin6;
 
-namespace TfNet.ResourceProvider;
+namespace TfNet.Providers.Data;
 
 internal class DataSourceProviderHost<T>
 {
@@ -16,7 +16,7 @@ internal class DataSourceProviderHost<T>
         _serializer = serializer;
     }
 
-    public async Task<ReadDataSource.Types.Response> ReadDataSource(ReadDataSource.Types.Request request)
+    public async Task<ReadDataSource.Types.Response> ReadDataSourceAsync(ReadDataSource.Types.Request request)
     {
         var current = DeserializeDynamicValue(request.Config);
 

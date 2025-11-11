@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TfNet.Extensions;
+using TfNet.Providers.Data;
+using TfNet.Schemas;
 
-namespace TfNet.ResourceProvider;
+namespace TfNet.Registry;
 
 internal class ServiceCollectionResourceRegistryContext : IResourceRegistryContext
 {
@@ -15,12 +18,18 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
     {
         EnsureValidType<T>();
 
+        _services.AddSingleton<ISchemaProvider>(
+            sp => sp.BuildService<TypeSchemaProvider<T>>([resourceName, SchemaType.Resource]));
+
         _services.AddSingleton(new ResourceRegistryRegistration(resourceName, typeof(T)));
     }
 
     public void RegisterDataSource<T>(string resourceName)
     {
         EnsureValidType<T>();
+
+        _services.AddSingleton<ISchemaProvider>(
+            sp => sp.BuildService<TypeSchemaProvider<T>>([resourceName, SchemaType.DataResource]));
 
         _services.AddSingleton(new DataSourceRegistryRegistration(resourceName, typeof(T)));
     }

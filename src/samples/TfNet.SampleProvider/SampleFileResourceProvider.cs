@@ -1,5 +1,6 @@
 ﻿using System.Text;
-using TfNet.ResourceProvider;
+using TfNet.Models;
+using TfNet.Providers.Resource;
 
 namespace TfNet.SampleProvider;
 
@@ -12,9 +13,16 @@ public class SampleFileResourceProvider : IResourceProvider<SampleFileResource>
         _configurator = configurator;
     }
 
-    public Task<SampleFileResource> PlanAsync(SampleFileResource? prior, SampleFileResource proposed)
+    public Task<PlanResult<SampleFileResource>> PlanAsync(SampleFileResource? prior, SampleFileResource proposed)
     {
-        return Task.FromResult(proposed);
+        var result = new PlanResult<SampleFileResource>(proposed);
+
+        if (prior != null && !proposed.Content.StartsWith(prior.Content))
+        {
+            result.RequiresReplace.Add(new AttributePath("content"));
+        }
+
+        return Task.FromResult(result);
     }
 
     public async Task<SampleFileResource> CreateAsync(SampleFileResource planned)
@@ -50,7 +58,7 @@ public class SampleFileResourceProvider : IResourceProvider<SampleFileResource>
 
         if (!File.Exists(id))
         {
-            throw new TerraformResourceProviderException($"File '{id}' does not exist.");
+            throw new FileNotFoundException($"File '{id}' does not exist.");
         }
 
         var content = await File.ReadAllTextAsync(id);

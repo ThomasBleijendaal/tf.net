@@ -1,7 +1,7 @@
-﻿using Tfplugin6;
+﻿using TfNet.Schemas;
 
 namespace TfNet.ProviderConfig;
 
 internal record ProviderConfigurationRegistry(
-    Schema ConfigurationSchema,
+    ISchemaProvider SchemaProvider,
     Type ConfigurationType);

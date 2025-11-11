@@ -1,4 +1,4 @@
-﻿namespace TfNet.ResourceProvider;
+﻿namespace TfNet.Registry;
 
 public interface IResourceRegistryContext
 {
