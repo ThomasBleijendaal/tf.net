@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <EnvironmentVariables>
+      <TF_PLUGIN_DOTNET_TEST_TF_BIN>C:\Projects\_tools\terraform.exe</TF_PLUGIN_DOTNET_TEST_TF_BIN>
+    </EnvironmentVariables>
+  </RunConfiguration>
+</RunSettings>
