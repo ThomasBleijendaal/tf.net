@@ -1,3 +1,3 @@
-﻿namespace TfNet.Registry;
+﻿namespace TfNet.Providers.Resource;
 
 internal record ResourceRegistryRegistration(string ResourceName, Type Type);

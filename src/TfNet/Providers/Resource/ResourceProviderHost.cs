@@ -1,23 +1,22 @@
-﻿using TfNet.Providers.ResourceUpgrade;
+﻿using TfNet.Extensions;
+using TfNet.Providers.ResourceUpgrade;
 using TfNet.Serialization;
 using Tfplugin6;
 
 namespace TfNet.Providers.Resource;
 
-internal class ResourceProviderHost<T> : IResourceProviderHost
+internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
 {
     private readonly IResourceProvider<T> _resourceProvider;
     private readonly IResourceUpgrader<T> _resourceUpgrader;
-    private readonly IDynamicValueSerializer _serializer;
 
     public ResourceProviderHost(
         IResourceProvider<T> resourceProvider,
         IResourceUpgrader<T> resourceUpgrader,
-        IDynamicValueSerializer serializer)
+        IDynamicValueSerializer serializer) : base(serializer)
     {
         _resourceProvider = resourceProvider;
         _resourceUpgrader = resourceUpgrader;
-        _serializer = serializer;
     }
 
     public async Task<UpgradeResourceState.Types.Response> UpgradeResourceStateAsync(UpgradeResourceState.Types.Request request)
@@ -51,25 +50,13 @@ internal class ResourceProviderHost<T> : IResourceProviderHost
 
         var planned = await _resourceProvider.PlanAsync(prior, proposed);
         var plannedSerialized = SerializeDynamicValue(planned.Value);
-        var requiresReplace = planned.RequiresReplace
-            .Where(attribute => attribute.Path.Length > 0).
-            Select(attribute =>
-            {
-                var path = new Tfplugin6.AttributePath();
-                path.Steps.AddRange(attribute.Path.Select(step => new Tfplugin6.AttributePath.Types.Step
-                {
-                    AttributeName = step
-                }));
-
-                return path;
-            });
 
         var res = new PlanResourceChange.Types.Response
         {
             PlannedState = plannedSerialized
         };
 
-        res.RequiresReplace.AddRange(requiresReplace);
+        planned.RequiresReplace.AddRange(res.RequiresReplace);
 
         return res;
     }
@@ -132,25 +119,5 @@ internal class ResourceProviderHost<T> : IResourceProviderHost
         }
 
         return response;
-    }
-
-    private T DeserializeDynamicValue(DynamicValue value)
-    {
-        if (!value.Msgpack.IsEmpty)
-        {
-            return _serializer.DeserializeMsgPack<T>(value.Msgpack.Memory);
-        }
-
-        if (!value.Json.IsEmpty)
-        {
-            return _serializer.DeserializeJson<T>(value.Json.Memory);
-        }
-
-        throw new ArgumentException("Either MessagePack or Json must be non-empty.", nameof(value));
-    }
-
-    private DynamicValue SerializeDynamicValue(T value)
-    {
-        return new DynamicValue { Msgpack = Google.Protobuf.ByteString.CopyFrom(_serializer.SerializeMsgPack(value)) };
     }
 }

@@ -23,5 +23,6 @@ public class SampleFileResource
     [Key("content")]
     [Description("Contents of the file.")]
     [Required]
+    [System.ComponentModel.DataAnnotations.MinLength(100)]
     public string Content { get; set; } = null!;
 }

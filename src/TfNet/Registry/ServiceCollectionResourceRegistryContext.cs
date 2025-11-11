@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TfNet.Extensions;
 using TfNet.Providers.Data;
+using TfNet.Providers.Resource;
+using TfNet.Providers.Validation;
 using TfNet.Schemas;
 
 namespace TfNet.Registry;
@@ -22,6 +24,12 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
             sp => sp.BuildService<TypeSchemaProvider<T>>([resourceName, SchemaType.Resource]));
 
         _services.AddSingleton(new ResourceRegistryRegistration(resourceName, typeof(T)));
+
+        // TODO: move this to resource builder setup returned by this method
+        // TODO: add support for the Required attribute in the validator
+        _services.AddSingleton<IValidationProvider<T>, DataAnnotationValidationProvider<T>>();
+        _services.AddSingleton<ValidationProviderHost<T>>();
+        _services.AddSingleton(new ValidatorRegistryRegistration(resourceName, typeof(T)));
     }
 
     public void RegisterDataSource<T>(string resourceName)

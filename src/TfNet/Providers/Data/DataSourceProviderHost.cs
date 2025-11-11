@@ -3,17 +3,15 @@ using Tfplugin6;
 
 namespace TfNet.Providers.Data;
 
-internal class DataSourceProviderHost<T>
+internal class DataSourceProviderHost<T> : Host<T>
 {
     private readonly IDataSourceProvider<T> _dataSourceProvider;
-    private readonly IDynamicValueSerializer _serializer;
 
     public DataSourceProviderHost(
         IDataSourceProvider<T> dataSourceProvider,
-        IDynamicValueSerializer serializer)
+        IDynamicValueSerializer serializer) : base(serializer)
     {
         _dataSourceProvider = dataSourceProvider;
-        _serializer = serializer;
     }
 
     public async Task<ReadDataSource.Types.Response> ReadDataSourceAsync(ReadDataSource.Types.Request request)
@@ -27,25 +25,5 @@ internal class DataSourceProviderHost<T>
         {
             State = readSerialized,
         };
-    }
-
-    private T DeserializeDynamicValue(DynamicValue value)
-    {
-        if (!value.Msgpack.IsEmpty)
-        {
-            return _serializer.DeserializeMsgPack<T>(value.Msgpack.Memory);
-        }
-
-        if (!value.Json.IsEmpty)
-        {
-            return _serializer.DeserializeJson<T>(value.Json.Memory);
-        }
-
-        throw new ArgumentException("Either MessagePack or Json must be non-empty.", nameof(value));
-    }
-
-    private DynamicValue SerializeDynamicValue(T value)
-    {
-        return new DynamicValue { Msgpack = Google.Protobuf.ByteString.CopyFrom(_serializer.SerializeMsgPack(value)) };
     }
 }
