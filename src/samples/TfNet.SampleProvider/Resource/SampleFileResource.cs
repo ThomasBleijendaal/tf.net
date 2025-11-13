@@ -3,7 +3,7 @@ using MessagePack;
 using TfNet.Resources;
 using TfNet.Serialization;
 
-namespace TfNet.SampleProvider;
+namespace TfNet.SampleProvider.Resource;
 
 [SchemaVersion(1)]
 [MessagePackObject]
@@ -23,6 +23,5 @@ public class SampleFileResource
     [Key("content")]
     [Description("Contents of the file.")]
     [Required]
-    [System.ComponentModel.DataAnnotations.MinLength(100)]
     public string Content { get; set; } = null!;
 }

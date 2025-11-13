@@ -2,7 +2,7 @@
 using TfNet.Models;
 using TfNet.Providers.Resource;
 
-namespace TfNet.SampleProvider;
+namespace TfNet.SampleProvider.Resource;
 
 public class SampleFileResourceProvider : IResourceProvider<SampleFileResource>
 {

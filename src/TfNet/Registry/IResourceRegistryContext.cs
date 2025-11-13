@@ -2,7 +2,9 @@
 
 public interface IResourceRegistryContext
 {
-    void RegisterResource<T>(string resourceName);
+    IResourceRegisterer<T> RegisterResource<T>(string resourceName);
 
-    void RegisterDataSource<T>(string dataSourceName);
+    IDataSourceRegisterer<T> RegisterDataSource<T>(string dataSourceName);
+
+    IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName);
 }

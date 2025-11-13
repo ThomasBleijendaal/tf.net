@@ -4,20 +4,22 @@ using Tfplugin6;
 
 namespace TfNet.Providers.Validation;
 
-internal class ValidationProviderHost<T> : Host<T>, IValidationProviderHost
+internal class ValidationProviderHost<T> : IValidationProviderHost
 {
     private readonly IValidationProvider<T> _validator;
+    private readonly IDynamicValueSerializer _serializer;
 
     public ValidationProviderHost(
         IValidationProvider<T> validator,
-        IDynamicValueSerializer serializer) : base(serializer)
+        IDynamicValueSerializer serializer)
     {
         _validator = validator;
+        _serializer = serializer;
     }
 
     public async Task<Diagnostic[]> ValidateAsync(DynamicValue value)
     {
-        var currentValue = DeserializeDynamicValue(value);
+        var currentValue = _serializer.DeserializeDynamicValue<T>(value);
 
         var validationResult = await _validator.ValidateAsync(currentValue);
 

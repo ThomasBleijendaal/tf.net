@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TfNet.Extensions;
 using TfNet.Providers.Data;
+using TfNet.Providers.Function;
 using TfNet.Providers.Resource;
-using TfNet.Providers.Validation;
 using TfNet.Schemas;
 
 namespace TfNet.Registry;
@@ -16,7 +16,7 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
         _services = services;
     }
 
-    public void RegisterResource<T>(string resourceName)
+    public IResourceRegisterer<T> RegisterResource<T>(string resourceName)
     {
         EnsureValidType<T>();
 
@@ -25,21 +25,32 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
 
         _services.AddSingleton(new ResourceRegistryRegistration(resourceName, typeof(T)));
 
-        // TODO: move this to resource builder setup returned by this method
-        // TODO: add support for the Required attribute in the validator
-        _services.AddSingleton<IValidationProvider<T>, DataAnnotationValidationProvider<T>>();
-        _services.AddSingleton<ValidationProviderHost<T>>();
-        _services.AddSingleton(new ValidatorRegistryRegistration(resourceName, typeof(T)));
+        return new ServiceCollectionResourceRegisterer<T>(_services, resourceName);
     }
 
-    public void RegisterDataSource<T>(string resourceName)
+    public IDataSourceRegisterer<T> RegisterDataSource<T>(string dataSourceName)
     {
         EnsureValidType<T>();
 
         _services.AddSingleton<ISchemaProvider>(
-            sp => sp.BuildService<TypeSchemaProvider<T>>([resourceName, SchemaType.DataResource]));
+            sp => sp.BuildService<TypeSchemaProvider<T>>([dataSourceName, SchemaType.DataResource]));
 
-        _services.AddSingleton(new DataSourceRegistryRegistration(resourceName, typeof(T)));
+        _services.AddSingleton(new DataSourceRegistryRegistration(dataSourceName, typeof(T)));
+
+        return new ServiceCollectionDataSourceRegisterer<T>(_services, dataSourceName);
+    }
+
+    public IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName)
+    {
+        EnsureValidType<TRequest>();
+        EnsureValidType<TResponse>();
+
+        _services.AddSingleton<ISchemaProvider>(
+            sp => sp.BuildService<TypeSchemaProvider<TRequest>>([functionName, SchemaType.Function]));
+
+        _services.AddSingleton(new FunctionRegistryRegistration(functionName, typeof(TRequest), typeof(TResponse)));
+
+        return new ServiceCollectionFunctionRegisterer<TRequest>(_services, functionName);
     }
 
     private static void EnsureValidType<T>()

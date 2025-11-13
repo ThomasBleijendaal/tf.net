@@ -7,22 +7,14 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 {
     public override async Task<ValidateResourceConfig.Types.Response> ValidateResourceConfig(ValidateResourceConfig.Types.Request request, ServerCallContext context)
     {
+        var response = new ValidateResourceConfig.Types.Response();
+
+        // only validate when there is a validation provider registered
         if (_resourceRegistry.GetValidationProvider(request.TypeName) is { } provider)
         {
-            var response = new ValidateResourceConfig.Types.Response();
             response.Diagnostics.AddRange(await provider.ValidateAsync(request.Config));
-            return response;
         }
-        else
-        {
-            return new()
-            {
-                Diagnostics =
-                {
-                    new Diagnostic { Detail = $"Unknown type name '{request.TypeName}'." },
-                }
-            };
-        }
+        return response;
     }
 
     public override async Task<PlanResourceChange.Types.Response> PlanResourceChange(PlanResourceChange.Types.Request request, ServerCallContext context)

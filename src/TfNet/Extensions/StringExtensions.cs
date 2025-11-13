@@ -2,7 +2,7 @@
 
 namespace TfNet.Extensions;
 
-internal static class StringExtensions
+public static class StringExtensions
 {
     extension(string s)
     {

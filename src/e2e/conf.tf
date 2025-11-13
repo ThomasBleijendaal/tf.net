@@ -1,4 +1,6 @@
-provider "sampleprovider" {}
+provider "sampleprovider" {
+  file_header = "abc"
+}
 
 terraform {
   required_providers {

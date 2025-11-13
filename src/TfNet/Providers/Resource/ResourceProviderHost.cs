@@ -5,24 +5,26 @@ using Tfplugin6;
 
 namespace TfNet.Providers.Resource;
 
-internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
+internal class ResourceProviderHost<T> : IResourceProviderHost
 {
     private readonly IResourceProvider<T> _resourceProvider;
     private readonly IResourceUpgrader<T> _resourceUpgrader;
+    private readonly IDynamicValueSerializer _serializer;
 
     public ResourceProviderHost(
         IResourceProvider<T> resourceProvider,
         IResourceUpgrader<T> resourceUpgrader,
-        IDynamicValueSerializer serializer) : base(serializer)
+        IDynamicValueSerializer serializer)
     {
         _resourceProvider = resourceProvider;
         _resourceUpgrader = resourceUpgrader;
+        _serializer = serializer;
     }
 
     public async Task<UpgradeResourceState.Types.Response> UpgradeResourceStateAsync(UpgradeResourceState.Types.Request request)
     {
         var upgraded = await _resourceUpgrader.UpgradeResourceStateAsync(request.Version, request.RawState.Json.Memory);
-        var upgradedSerialized = SerializeDynamicValue(upgraded);
+        var upgradedSerialized = _serializer.SerializeDynamicValue(upgraded);
 
         return new UpgradeResourceState.Types.Response
         {
@@ -32,10 +34,10 @@ internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
 
     public async Task<ReadResource.Types.Response> ReadResourceAsync(ReadResource.Types.Request request)
     {
-        var current = DeserializeDynamicValue(request.CurrentState);
+        var current = _serializer.DeserializeDynamicValue<T>(request.CurrentState);
 
         var read = await _resourceProvider.ReadAsync(current);
-        var readSerialized = SerializeDynamicValue(read);
+        var readSerialized = _serializer.SerializeDynamicValue(read);
 
         return new ReadResource.Types.Response
         {
@@ -45,11 +47,11 @@ internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
 
     public async Task<PlanResourceChange.Types.Response> PlanResourceChangeAsync(PlanResourceChange.Types.Request request)
     {
-        var prior = DeserializeDynamicValue(request.PriorState);
-        var proposed = DeserializeDynamicValue(request.ProposedNewState);
+        var prior = _serializer.DeserializeDynamicValue<T>(request.PriorState);
+        var proposed = _serializer.DeserializeDynamicValue<T>(request.ProposedNewState);
 
         var planned = await _resourceProvider.PlanAsync(prior, proposed);
-        var plannedSerialized = SerializeDynamicValue(planned.Value);
+        var plannedSerialized = _serializer.SerializeDynamicValue(planned.Value);
 
         var res = new PlanResourceChange.Types.Response
         {
@@ -63,8 +65,8 @@ internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
 
     public async Task<ApplyResourceChange.Types.Response> ApplyResourceChangeAsync(ApplyResourceChange.Types.Request request)
     {
-        var prior = DeserializeDynamicValue(request.PriorState);
-        var planned = DeserializeDynamicValue(request.PlannedState);
+        var prior = _serializer.DeserializeDynamicValue<T>(request.PriorState);
+        var planned = _serializer.DeserializeDynamicValue<T>(request.PlannedState);
 
         if (planned == null)
         {
@@ -76,7 +78,7 @@ internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
         {
             // Create
             var created = await _resourceProvider.CreateAsync(planned);
-            var createdSerialized = SerializeDynamicValue(created);
+            var createdSerialized = _serializer.SerializeDynamicValue(created);
             return new ApplyResourceChange.Types.Response
             {
                 NewState = createdSerialized,
@@ -86,7 +88,7 @@ internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
         {
             // Update
             var updated = await _resourceProvider.UpdateAsync(prior, planned);
-            var updatedSerialized = SerializeDynamicValue(updated);
+            var updatedSerialized = _serializer.SerializeDynamicValue(updated);
             return new ApplyResourceChange.Types.Response
             {
                 NewState = updatedSerialized,
@@ -105,7 +107,7 @@ internal class ResourceProviderHost<T> : Host<T>, IResourceProviderHost
             response.ImportedResources.AddRange(imported.Select(resource => new ImportResourceState.Types.ImportedResource
             {
                 TypeName = request.TypeName,
-                State = SerializeDynamicValue(resource),
+                State = _serializer.SerializeDynamicValue(resource),
             }));
 
         }

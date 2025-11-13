@@ -1,6 +1,6 @@
 ﻿using TfNet.Schemas;
 
-namespace TfNet.ProviderConfig;
+namespace TfNet.Providers.ProviderConfig;
 
 internal record ProviderConfigurationRegistry(
     ISchemaProvider SchemaProvider,

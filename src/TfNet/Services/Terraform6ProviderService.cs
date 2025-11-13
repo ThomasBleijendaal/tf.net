@@ -1,9 +1,7 @@
-﻿using AsyncPlinq;
-using Grpc.Core;
+﻿using Grpc.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using TfNet.ProviderConfig;
-using TfNet.Providers.Data;
+using TfNet.Providers.ProviderConfig;
 using TfNet.Registry;
 using Tfplugin6;
 
@@ -38,38 +36,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
         return Task.FromResult(res);
     }
 
-    public override Task<ValidateDataResourceConfig.Types.Response> ValidateDataResourceConfig(ValidateDataResourceConfig.Types.Request request, ServerCallContext context)
-    {
-        var res = new ValidateDataResourceConfig.Types.Response();
-
-        return Task.FromResult(res);
-    }
-
-    public override Task<ReadDataSource.Types.Response> ReadDataSource(ReadDataSource.Types.Request request, ServerCallContext context)
-    {
-        if (!_resourceRegistry.DataTypes.TryGetValue(request.TypeName, out var resourceType))
-        {
-            return Task.FromResult(new ReadDataSource.Types.Response
-            {
-                Diagnostics =
-                    {
-                        new Diagnostic { Detail = "Unknown type name." },
-                    },
-            });
-        }
-
-        var providerHostType = typeof(DataSourceProviderHost<>).MakeGenericType(resourceType);
-        var provider = _serviceProvider.GetService(providerHostType);
-        return (Task<ReadDataSource.Types.Response>)providerHostType.GetMethod(nameof(DataSourceProviderHost<object>.ReadDataSourceAsync))!
-            .Invoke(provider, new[] { request })!;
-    }
-
     // unimplemented stubs
-
-    public override Task<CallFunction.Types.Response> CallFunction(CallFunction.Types.Request request, ServerCallContext context)
-    {
-        return Task.FromResult(new Tfplugin6.CallFunction.Types.Response());
-    }
 
     public override Task<CloseEphemeralResource.Types.Response> CloseEphemeralResource(CloseEphemeralResource.Types.Request request, ServerCallContext context)
     {
@@ -89,11 +56,6 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
     public override Task<GenerateResourceConfig.Types.Response> GenerateResourceConfig(GenerateResourceConfig.Types.Request request, ServerCallContext context)
     {
         return Task.FromResult(new Tfplugin6.GenerateResourceConfig.Types.Response());
-    }
-
-    public override Task<GetFunctions.Types.Response> GetFunctions(GetFunctions.Types.Request request, ServerCallContext context)
-    {
-        return Task.FromResult(new Tfplugin6.GetFunctions.Types.Response());
     }
 
     public override Task<GetMetadata.Types.Response> GetMetadata(GetMetadata.Types.Request request, ServerCallContext context)

@@ -1,7 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TfNet;
+using TfNet.Providers.Data;
+using TfNet.Providers.Function;
 using TfNet.Providers.Resource;
-
-namespace TfNet.SampleProvider;
+using TfNet.Providers.Validation;
+using TfNet.SampleProvider;
+using TfNet.SampleProvider.DataSource;
+using TfNet.SampleProvider.Function;
+using TfNet.SampleProvider.Resource;
 
 class Program
 {
@@ -12,9 +18,22 @@ class Program
         return TerraformPluginHost.RunAsync(args, "example.com/example/sampleprovider", (services, registry) =>
         {
             services.AddSingleton<SampleConfigurator>();
-            services.AddTerraformProviderConfigurator<Configuration, SampleConfigurator>();
+
+            services.AddSingleton<IValidationProvider<Configuration>, ConfigurationValidator>();
+            services.AddSingleton<IValidationProvider<SampleFileResource>, SampleFileResourceValidator>();
+
+            services.AddTerraformProviderConfigurator<Configuration, SampleConfigurator>()
+                .WithValidator<ConfigurationValidator>();
+
             services.AddSingleton<IResourceProvider<SampleFileResource>, SampleFileResourceProvider>();
-            registry.RegisterResource<SampleFileResource>("sampleprovider_file");
+            registry.RegisterResource<SampleFileResource>("sampleprovider_file")
+                .WithValidator<SampleFileResourceValidator>();
+
+            services.AddSingleton<IDataSourceProvider<SampleFolderDataSource>, SampleFolderDataSourceProvider>();
+            registry.RegisterDataSource<SampleFolderDataSource>("sampleprovider_folder");
+
+            services.AddSingleton<IFunctionProvider<ConcatRequest, ConcatResponse>, ConcatFunction>();
+            registry.RegisterFunction<ConcatRequest, ConcatResponse>("sampleprovider_concat");
         });
     }
 }

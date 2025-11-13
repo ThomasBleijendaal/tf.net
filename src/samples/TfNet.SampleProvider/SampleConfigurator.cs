@@ -1,4 +1,4 @@
-﻿using TfNet.ProviderConfig;
+﻿using TfNet.Providers.ProviderConfig;
 
 namespace TfNet.SampleProvider;
 

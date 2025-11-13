@@ -1,6 +1,5 @@
 ﻿using AsyncPlinq;
 using Grpc.Core;
-using TfNet.ProviderConfig;
 using Tfplugin6;
 
 namespace TfNet.Services;
@@ -9,23 +8,24 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 {
     public override async Task<ConfigureProvider.Types.Response> ConfigureProvider(ConfigureProvider.Types.Request request, ServerCallContext context)
     {
-        if (_providerConfiguration == null)
+        if (_resourceRegistry.GetProviderConfigurator() is { } configurator)
         {
-            return new ConfigureProvider.Types.Response { };
+            await configurator.ConfigureAsync(request);
         }
 
-        var configurationHostType = typeof(ProviderConfigurationHost<>).MakeGenericType(_providerConfiguration.ConfigurationType);
-        var configurationHost = _serviceProvider.GetService(configurationHostType);
-        await (Task)configurationHostType.GetMethod(nameof(ProviderConfigurationHost<>.ConfigureAsync))!
-            .Invoke(configurationHost, new[] { request })!;
         return new ConfigureProvider.Types.Response { };
     }
 
-    public override Task<ValidateProviderConfig.Types.Response> ValidateProviderConfig(ValidateProviderConfig.Types.Request request, ServerCallContext context)
+    public override async Task<ValidateProviderConfig.Types.Response> ValidateProviderConfig(ValidateProviderConfig.Types.Request request, ServerCallContext context)
     {
-        var res = new ValidateProviderConfig.Types.Response();
+        var response = new ValidateProviderConfig.Types.Response();
 
-        return Task.FromResult(res);
+        // only validate when there is a validation provider registered
+        if (_resourceRegistry.GetValidationProvider(Constants.Provider) is { } provider)
+        {
+            response.Diagnostics.AddRange(await provider.ValidateAsync(request.Config));
+        }
+        return response;
     }
 
     public override async Task<GetProviderSchema.Types.Response> GetProviderSchema(GetProviderSchema.Types.Request request, ServerCallContext context)
@@ -48,6 +48,8 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
         {
             res.DataSourceSchemas.Add(key, schema);
         }
+
+
 
         return res;
     }

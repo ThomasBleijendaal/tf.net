@@ -1,4 +1,4 @@
-﻿namespace TfNet.ProviderConfig;
+﻿namespace TfNet.Providers.ProviderConfig;
 
 public interface IProviderConfigurator<T>
 {

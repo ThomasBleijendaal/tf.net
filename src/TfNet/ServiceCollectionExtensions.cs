@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TfNet.Extensions;
-using TfNet.ProviderConfig;
 using TfNet.Providers.Data;
+using TfNet.Providers.ProviderConfig;
 using TfNet.Providers.Resource;
 using TfNet.Providers.ResourceUpgrade;
 using TfNet.Registry;
@@ -40,16 +40,15 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds a configurator that will be called when configuring this terraform plugin.
     /// </summary>
-    public static IServiceCollection AddTerraformProviderConfigurator<TConfig, TProviderConfigurator>(this IServiceCollection services)
+    public static IProviderConfigRegisterer<TConfig> AddTerraformProviderConfigurator<TConfig, TProviderConfigurator>(this IServiceCollection services)
         where TProviderConfigurator : IProviderConfigurator<TConfig>
     {
-        var schemaProviderType = typeof(TypeSchemaProvider<TConfig>);
-
         services.AddSingleton(sp => new ProviderConfigurationRegistry(
-            SchemaProvider: sp.BuildService<TypeSchemaProvider<TConfig>>(["__provider", SchemaType.Provider]),
+            SchemaProvider: sp.BuildService<TypeSchemaProvider<TConfig>>([Constants.Provider, SchemaType.Provider]),
             ConfigurationType: typeof(TConfig)));
 
         services.AddTransient<IProviderConfigurator<TConfig>>(s => s.GetRequiredService<TProviderConfigurator>());
-        return services;
+
+        return new ServiceCollectionProviderConfigRegisterer<TConfig>(services, Constants.Provider);
     }
 }
