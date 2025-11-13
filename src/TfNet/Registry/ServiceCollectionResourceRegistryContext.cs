@@ -41,6 +41,7 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
     }
 
     public IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName)
+        where TRequest : new()
     {
         EnsureValidType<TRequest>();
         EnsureValidType<TResponse>();

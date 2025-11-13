@@ -6,5 +6,6 @@ public interface IResourceRegistryContext
 
     IDataSourceRegisterer<T> RegisterDataSource<T>(string dataSourceName);
 
-    IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName);
+    IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName)
+        where TRequest : new();
 }

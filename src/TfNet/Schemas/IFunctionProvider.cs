@@ -12,5 +12,5 @@ public interface IFunctionProvider
     /// <summary>
     /// Builds a Terraform schema based on its configuration. FunctionProviders are required to cache (parts of) their schema when applicable.
     /// </summary>
-    ValueTask<Function> GetFunctionAsync();
+    ValueTask<(Function function, IParameterSetter setter)> GetFunctionAsync();
 }

@@ -2,6 +2,7 @@
 using System.Reflection;
 using Google.Protobuf;
 using TfNet.Schemas.Types;
+using TfNet.Serialization;
 using Tfplugin6;
 using KeyAttribute = MessagePack.KeyAttribute;
 
@@ -12,6 +13,7 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
     private readonly ITerraformTypeBuilder _typeBuilder;
 
     private Function? _function;
+    private IParameterSetter? _setter;
 
     public FunctionSchemaProvider(
         string functionName,
@@ -24,13 +26,12 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
 
     public string FunctionName { get; }
 
-    public ValueTask<Function> GetFunctionAsync()
+    public ValueTask<(Function, IParameterSetter)> GetFunctionAsync()
     {
-        if (_function != null)
+        if (_function != null && _setter != null)
         {
-            return ValueTask.FromResult(_function);
+            return ValueTask.FromResult((_function, _setter));
         }
-
 
         var requestType = typeof(TRequest);
         var properties = requestType.GetProperties();
@@ -48,6 +49,8 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
                 Type = ByteString.CopyFromUtf8(returnTerraformType.ToJson())
             }
         };
+
+        var parameters = new List<ParameterSetter<TRequest>.Parameter>();
 
         foreach (var property in properties)
         {
@@ -71,10 +74,16 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
                 AllowUnknownValues = false,
                 DescriptionKind = StringKind.Plain
             });
+
+            parameters.Add(
+                new ParameterSetter<TRequest>.Parameter(
+                    property.PropertyType,
+                    (target, value) => property.SetValue(target, value)));
         }
 
         _function = function;
+        _setter = new ParameterSetter<TRequest>([.. parameters]);
 
-        return ValueTask.FromResult(_function);
+        return ValueTask.FromResult((_function, _setter));
     }
 }

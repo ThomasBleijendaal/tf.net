@@ -13,7 +13,7 @@ internal class ResourceRegistry
     private readonly IServiceProvider _serviceProvider;
     private readonly ProviderConfigurationRegistry? _providerConfigurationRegistry;
     private readonly IEnumerable<ISchemaProvider> _schemaProviders;
-    private readonly IEnumerable<IFunctionProvider> _functionProviders;
+    private readonly Dictionary<string, IFunctionProvider> _functionProviders;
     private readonly Dictionary<string, ValidatorRegistryRegistration> _validatorRegistrations;
     private readonly Dictionary<string, ResourceRegistryRegistration> _resourceRegistrations;
     private readonly Dictionary<string, DataSourceRegistryRegistration> _dataSourceRegistrations;
@@ -32,7 +32,7 @@ internal class ResourceRegistry
         _serviceProvider = serviceProvider;
         _providerConfigurationRegistry = providerConfigurationRegistry;
         _schemaProviders = schemaProviders;
-        _functionProviders = functionProviders;
+        _functionProviders = functionProviders.ToDictionary(x => x.FunctionName);
         _validatorRegistrations = validatorRegistrations.ToDictionary(x => x.ResourceName);
         _resourceRegistrations = resourceRegistrations.ToDictionary(x => x.ResourceName);
         _dataSourceRegistrations = dataSourceRegistrations.ToDictionary(x => x.ResourceName);
@@ -91,6 +91,11 @@ internal class ResourceRegistry
         }
     }
 
+    public async ValueTask<IParameterSetter?> GetFunctionRequestSetterAsync(string name)
+        => _functionProviders.TryGetValue(name, out var functionProvider)
+            ? (await functionProvider.GetFunctionAsync()).setter
+            : null;
+
     public Dictionary<string, Type> DataTypes { get; } = new Dictionary<string, Type>();
 
     private async IAsyncEnumerable<Registration<Schema>> GetSchemasOfTypeAsync(SchemaType schemaType)
@@ -105,11 +110,11 @@ internal class ResourceRegistry
 
     private async IAsyncEnumerable<Registration<Function>> GetAllFunctionsAsync()
     {
-        foreach (var functionProvider in _functionProviders)
+        foreach (var functionProvider in _functionProviders.Values)
         {
             var function = await functionProvider.GetFunctionAsync();
 
-            yield return new(functionProvider.FunctionName, function);
+            yield return new(functionProvider.FunctionName, function.function);
         }
     }
 
