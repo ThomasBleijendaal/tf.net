@@ -15,3 +15,7 @@ data "sampleprovider_folder" "folder" {
 output test {
   value = data.sampleprovider_folder.folder.files
 }
+
+# output concat {
+#   value = provider::sampleprovider::sampleprovider_concat("f", "a")
+# }

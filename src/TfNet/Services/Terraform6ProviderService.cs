@@ -1,6 +1,5 @@
 ﻿using Grpc.Core;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Registry;
 using Tfplugin6;
@@ -9,23 +8,17 @@ namespace TfNet.Services;
 
 internal partial class Terraform6ProviderService : Provider.ProviderBase
 {
-    private readonly ILogger<Terraform6ProviderService> _logger;
     private readonly IHostApplicationLifetime _lifetime;
     private readonly ResourceRegistry _resourceRegistry;
-    private readonly IServiceProvider _serviceProvider;
     private readonly ProviderConfigurationRegistry? _providerConfiguration;
 
     public Terraform6ProviderService(
-        ILogger<Terraform6ProviderService> logger,
         IHostApplicationLifetime lifetime,
         ResourceRegistry resourceRegistry,
-        IServiceProvider serviceProvider,
         ProviderConfigurationRegistry? providerConfiguration = null)
     {
-        _logger = logger;
         _lifetime = lifetime;
         _resourceRegistry = resourceRegistry;
-        _serviceProvider = serviceProvider;
         _providerConfiguration = providerConfiguration;
     }
 

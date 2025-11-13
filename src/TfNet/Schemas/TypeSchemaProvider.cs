@@ -69,7 +69,7 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
             {
                 Name = key.StringKey,
                 Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
-                Description = description?.Description,
+                Description = description?.Description ?? "",
                 Optional = !required,
                 Required = required,
                 Computed = computed,

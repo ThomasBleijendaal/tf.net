@@ -10,7 +10,7 @@ public interface IFunctionProvider
     string FunctionName { get; }
 
     /// <summary>
-    /// Builds a Terraform schema based on its configuration. SchemaProviders are required to cache (parts of) their schema when applicable.
+    /// Builds a Terraform schema based on its configuration. FunctionProviders are required to cache (parts of) their schema when applicable.
     /// </summary>
-    ValueTask<Schema> GetSchemaAsync();
+    ValueTask<Function> GetFunctionAsync();
 }

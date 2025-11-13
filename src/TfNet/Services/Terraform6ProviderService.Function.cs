@@ -16,8 +16,16 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
                 }
             };
 
-    public override Task<GetFunctions.Types.Response> GetFunctions(GetFunctions.Types.Request request, ServerCallContext context)
+    public override async Task<GetFunctions.Types.Response> GetFunctions(GetFunctions.Types.Request request, ServerCallContext context)
     {
-        return Task.FromResult(new Tfplugin6.GetFunctions.Types.Response());
+        var response = new GetFunctions.Types.Response();
+
+        var functions = await _resourceRegistry.GetFunctionsAsync().ToArrayAsync();
+        foreach (var (key, function) in functions)
+        {
+            response.Functions.Add(key, function);
+        }
+
+        return response;
     }
 }

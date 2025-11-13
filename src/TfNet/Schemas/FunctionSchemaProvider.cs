@@ -1,8 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
 using Google.Protobuf;
-using Microsoft.Extensions.Logging;
-using TfNet.Resources;
 using TfNet.Schemas.Types;
 using Tfplugin6;
 using KeyAttribute = MessagePack.KeyAttribute;
@@ -11,50 +9,52 @@ namespace TfNet.Schemas;
 
 internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
 {
-    private readonly ILogger<FunctionSchemaProvider<TRequest, TResponse>> _logger;
     private readonly ITerraformTypeBuilder _typeBuilder;
 
-    private Function? _schema;
+    private Function? _function;
 
     public FunctionSchemaProvider(
-        string schemaName,
-        ILogger<FunctionSchemaProvider<TRequest, TResponse>> logger,
+        string functionName,
         ITerraformTypeBuilder typeBuilder)
     {
-        _logger = logger;
         _typeBuilder = typeBuilder;
 
-        SchemaName = schemaName;
-        Type = schemaType;
+        FunctionName = functionName;
     }
 
-    public string SchemaName { get; }
+    public string FunctionName { get; }
 
-    public ValueTask<Function> GetSchemaAsync()
+    public ValueTask<Function> GetFunctionAsync()
     {
-        if (_schema != null)
+        if (_function != null)
         {
-            return ValueTask.FromResult(_schema);
+            return ValueTask.FromResult(_function);
         }
 
-        var type = typeof(T);
 
-        var schemaVersionAttribute = type.GetCustomAttribute<SchemaVersionAttribute>();
-        if (schemaVersionAttribute == null)
+        var requestType = typeof(TRequest);
+        var properties = requestType.GetProperties();
+
+        var responseType = typeof(TResponse);
+        var returnTerraformType = _typeBuilder.GetTerraformType(responseType);
+
+        var function = new Function
         {
-            _logger.LogWarning($"Missing {nameof(SchemaVersionAttribute)} when generating schema for {type.FullName}.");
-        }
+            Description = "TODO",
+            Summary = "TODO",
 
-        var properties = type.GetProperties();
+            Return = new Function.Types.Return
+            {
+                Type = ByteString.CopyFromUtf8(returnTerraformType.ToJson())
+            }
+        };
 
-        var block = new Schema.Types.Block();
         foreach (var property in properties)
         {
-            var key = property.GetCustomAttribute<KeyAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {property.Name} in {type.Name}.");
+            var key = property.GetCustomAttribute<KeyAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {property.Name} in {requestType.Name}.");
 
             var description = property.GetCustomAttribute<DescriptionAttribute>();
             var required = TerraformTypeBuilder.IsRequiredAttribute(property);
-            var computed = property.GetCustomAttribute<ComputedAttribute>() != null;
             var terraformType = _typeBuilder.GetTerraformType(property.PropertyType);
 
             if (terraformType is TerraformType.TfObject _ && !required)
@@ -62,23 +62,19 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
                 throw new InvalidOperationException("Optional object types are not supported.");
             }
 
-            block.Attributes.Add(new Schema.Types.Attribute
+            function.Parameters.Add(new Function.Types.Parameter
             {
                 Name = key.StringKey,
                 Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
-                Description = description?.Description,
-                Optional = !required,
-                Required = required,
-                Computed = computed,
+                Description = description?.Description ?? "",
+                AllowNullValue = !required && !property.PropertyType.IsValueType,
+                AllowUnknownValues = false,
+                DescriptionKind = StringKind.Plain
             });
         }
 
-        _schema = new Function
-        {
-            Version = schemaVersionAttribute?.SchemaVersion ?? 0,
-            Block = block,
-        };
+        _function = function;
 
-        return ValueTask.FromResult(_schema);
+        return ValueTask.FromResult(_function);
     }
 }

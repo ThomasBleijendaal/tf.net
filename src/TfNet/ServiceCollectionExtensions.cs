@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TfNet.Extensions;
 using TfNet.Providers.Data;
+using TfNet.Providers.Function;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Providers.Resource;
 using TfNet.Providers.ResourceUpgrade;
@@ -23,6 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient(typeof(ProviderConfigurationHost<>));
         services.AddTransient(typeof(ResourceProviderHost<>));
         services.AddTransient(typeof(DataSourceProviderHost<>));
+        services.AddTransient(typeof(FunctionProviderHost<,>));
         services.AddTransient(typeof(IResourceUpgrader<>), typeof(DefaultResourceUpgrader<>));
         services.AddTransient<IDynamicValueSerializer, DefaultDynamicValueSerializer>();
         return services;

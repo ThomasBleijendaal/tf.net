@@ -1,9 +1,7 @@
 ﻿using MessagePack;
-using TfNet.Resources;
 
 namespace TfNet.SampleProvider.Function;
 
-[SchemaVersion(1)]
 [MessagePackObject]
 public class ConcatRequest
 {

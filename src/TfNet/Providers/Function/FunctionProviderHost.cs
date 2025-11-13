@@ -14,8 +14,10 @@ internal class FunctionProviderHost<TRequest, TResponse> : IFunctionProviderHost
         _serializer = serializer;
     }
 
-    public Task<CallFunction.Types.Response> CallFunctionAsync(CallFunction.Types.Request request)
+    public async Task<CallFunction.Types.Response> CallFunctionAsync(CallFunction.Types.Request request)
     {
+        return new CallFunction.Types.Response();
+
         // var input = _serializer.DeserializeDynamicValue<TRequest>(request.Arguments)
     }
 }
