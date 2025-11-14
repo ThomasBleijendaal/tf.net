@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TfNet.Plugin;
+using TfNet.Api;
 using TfNet.Providers.Data;
 using TfNet.Providers.Function;
 using TfNet.Providers.Resource;
@@ -9,7 +9,7 @@ using TfNet.SampleCore.DataSource;
 using TfNet.SampleCore.Function;
 using TfNet.SampleCore.Resource;
 
-await TerraformPluginHost.RunAsync(args, "example.com/example/sampleprovider", (services, registry) =>
+await TerraformApiHost.RunAsync(args, "example.com/example/sampleprovider", (services, registry) =>
 {
     services.AddSingleton<SampleConfigurator>();
 

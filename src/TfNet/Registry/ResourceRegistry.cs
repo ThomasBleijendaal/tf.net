@@ -13,7 +13,7 @@ internal class ResourceRegistry
     private readonly IServiceProvider _serviceProvider;
     private readonly ProviderConfigurationRegistry? _providerConfigurationRegistry;
     private readonly IEnumerable<ISchemaProvider> _schemaProviders;
-    private readonly Dictionary<string, IFunctionProvider> _functionProviders;
+    private readonly Dictionary<string, IFunctionSchemaProvider> _functionProviders;
     private readonly Dictionary<string, ValidatorRegistryRegistration> _validatorRegistrations;
     private readonly Dictionary<string, ResourceRegistryRegistration> _resourceRegistrations;
     private readonly Dictionary<string, DataSourceRegistryRegistration> _dataSourceRegistrations;
@@ -23,7 +23,7 @@ internal class ResourceRegistry
         IServiceProvider serviceProvider,
         ProviderConfigurationRegistry? providerConfigurationRegistry,
         IEnumerable<ISchemaProvider> schemaProviders,
-        IEnumerable<IFunctionProvider> functionProviders,
+        IEnumerable<IFunctionSchemaProvider> functionProviders,
         IEnumerable<ValidatorRegistryRegistration> validatorRegistrations,
         IEnumerable<ResourceRegistryRegistration> resourceRegistrations,
         IEnumerable<DataSourceRegistryRegistration> dataSourceRegistrations,
@@ -93,7 +93,7 @@ internal class ResourceRegistry
 
     public async ValueTask<IParameterSetter?> GetFunctionRequestSetterAsync(string name)
         => _functionProviders.TryGetValue(name, out var functionProvider)
-            ? (await functionProvider.GetFunctionAsync()).setter
+            ? (await functionProvider.GetRequestSetterAsync())
             : null;
 
     public Dictionary<string, Type> DataTypes { get; } = new Dictionary<string, Type>();
@@ -112,9 +112,9 @@ internal class ResourceRegistry
     {
         foreach (var functionProvider in _functionProviders.Values)
         {
-            var function = await functionProvider.GetFunctionAsync();
+            var function = await functionProvider.GetFunctionSchemaAsync();
 
-            yield return new(functionProvider.FunctionName, function.function);
+            yield return new(functionProvider.FunctionName, function);
         }
     }
 

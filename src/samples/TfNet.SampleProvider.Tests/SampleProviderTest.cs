@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TfNet.Plugin;
 using TfNet.Providers.Resource;
 using TfNet.Registry;
-using TfNet.SampleProvider.Resource;
+using TfNet.SampleCore;
+using TfNet.SampleCore.Resource;
 using TfNet.Testing;
 
 namespace TfNet.SampleProvider.Tests;

@@ -2,13 +2,12 @@
 using System.Reflection;
 using Google.Protobuf;
 using TfNet.Schemas.Types;
-using TfNet.Serialization;
 using Tfplugin6;
 using KeyAttribute = MessagePack.KeyAttribute;
 
 namespace TfNet.Schemas;
 
-internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
+internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionSchemaProvider
 {
     private readonly ITerraformTypeBuilder _typeBuilder;
 
@@ -26,13 +25,28 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
 
     public string FunctionName { get; }
 
-    public ValueTask<(Function, IParameterSetter)> GetFunctionAsync()
+    public ValueTask<Function> GetFunctionSchemaAsync()
     {
-        if (_function != null && _setter != null)
+        if (_function == null)
         {
-            return ValueTask.FromResult((_function, _setter));
+            (_function, _setter) = GetSchemaAndSetter();
         }
 
+        return ValueTask.FromResult(_function);
+    }
+
+    public ValueTask<IParameterSetter> GetRequestSetterAsync()
+    {
+        if (_setter == null)
+        {
+            (_function, _setter) = GetSchemaAndSetter();
+        }
+
+        return ValueTask.FromResult(_setter);
+    }
+
+    private (Function function, IParameterSetter setter) GetSchemaAndSetter()
+    {
         var requestType = typeof(TRequest);
         var properties = requestType.GetProperties();
 
@@ -81,9 +95,6 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionProvider
                     (target, value) => property.SetValue(target, value)));
         }
 
-        _function = function;
-        _setter = new ParameterSetter<TRequest>([.. parameters]);
-
-        return ValueTask.FromResult((_function, _setter));
+        return (function, new ParameterSetter<TRequest>([.. parameters]));
     }
 }

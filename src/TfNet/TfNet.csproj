@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\tfplugin6.10.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\tfplugin6.10.proto" GrpcServices="Both" />
   </ItemGroup>
   
   <ItemGroup>
@@ -18,6 +18,13 @@
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.13.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.13.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TfNet.Api" />
+    <InternalsVisibleTo Include="TfNet.Plugin" />
+    <InternalsVisibleTo Include="TfNet.PluginCore" />
+    <InternalsVisibleTo Include="TfNet.Proxy" />
   </ItemGroup>
 
 </Project>

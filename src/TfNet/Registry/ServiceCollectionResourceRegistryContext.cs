@@ -46,7 +46,7 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
         EnsureValidType<TRequest>();
         EnsureValidType<TResponse>();
 
-        _services.AddSingleton<IFunctionProvider>(
+        _services.AddSingleton<IFunctionSchemaProvider>(
             sp => sp.BuildService<FunctionSchemaProvider<TRequest, TResponse>>([functionName]));
 
         _services.AddSingleton(new FunctionRegistryRegistration(functionName, typeof(TRequest), typeof(TResponse)));
