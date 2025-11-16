@@ -55,7 +55,16 @@ public static class WebHostBuilderExtensions
                 services.AddSingleton<ResourceRegistry>();
 
                 var registryContext = new ServiceCollectionResourceRegistryContext(services);
-                configureRegistry(services, registryContext);
+
+                try
+                {
+                    configureRegistry(services, registryContext);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                }
             });
 
             return webBuilder;

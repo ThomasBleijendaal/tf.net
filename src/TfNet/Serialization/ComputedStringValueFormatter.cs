@@ -32,3 +32,32 @@ public class ComputedStringValueFormatter : IMessagePackFormatter<string?>
         writer.WriteString(Encoding.UTF8.GetBytes(value));
     }
 }
+
+public class ComputedIntValueFormatter : IMessagePackFormatter<int?>
+{
+    public int? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return null;
+        }
+        else if (reader.NextMessagePackType == MessagePackType.Extension && reader.TryReadExtensionFormatHeader(out var extHeader) && extHeader.TypeCode == 0)
+        {
+            reader.Skip();
+            return null;
+        }
+
+        return reader.ReadInt32();
+    }
+
+    public void Serialize(ref MessagePackWriter writer, int? value, MessagePackSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteExtensionFormat(new ExtensionResult(0, new byte[1]));
+            return;
+        }
+
+        writer.WriteInt32(value.Value);
+    }
+}

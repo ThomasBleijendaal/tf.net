@@ -11,6 +11,7 @@ namespace TfNet.Registry;
 internal class ResourceRegistry
 {
     private readonly IServiceProvider _serviceProvider;
+    // TODO: this nullable does not work and should be validated during startup
     private readonly ProviderConfigurationRegistry? _providerConfigurationRegistry;
     private readonly IEnumerable<ISchemaProvider> _schemaProviders;
     private readonly Dictionary<string, IFunctionSchemaProvider> _functionProviders;
