@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "TfNet.Proxy": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DebugMode": "true",
+        "TF_PROXY_URL": "http://localhost:5345",
+        "TF_PROXY_KEY": "fdsa"
+      }
+    }
+  }
+}

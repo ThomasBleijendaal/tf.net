@@ -3,7 +3,8 @@ using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using TfNet.ResourceProvider;
+using TfNet.Plugin;
+using TfNet.Registry;
 
 namespace TfNet.Testing;
 

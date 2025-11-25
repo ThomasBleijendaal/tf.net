@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TfNet.PluginCore\TfNet.PluginCore.csproj" />
+    <ProjectReference Include="..\TfNet.Plugin\TfNet.Plugin.csproj" />
     <ProjectReference Include="..\TfNet\TfNet.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TfNet.SampleEfProvider": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DebugMode": "true"
+      }
+    }
+  }
+}

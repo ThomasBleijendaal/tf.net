@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "TfNet.SampleApiProvider": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DebugMode": "true",
+        "TF_PROXY_KEY": "fdsa"
+      }
+    }
+  }
+}

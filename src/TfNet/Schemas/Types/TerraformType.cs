@@ -74,7 +74,7 @@ public abstract record TerraformType
         {
             unchecked
             {
-                int hash = 17;
+                var hash = 17;
 
                 foreach (var element in ElementTypes)
                 {
@@ -130,7 +130,7 @@ public abstract record TerraformType
         {
             unchecked
             {
-                int hash = 17;
+                var hash = 17;
 
                 foreach (var element in Attributes)
                 {

@@ -1,0 +1,87 @@
+﻿using System.ComponentModel;
+using System.Reflection;
+using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using TfNet.Resources;
+using TfNet.Schemas.Types;
+using Tfplugin6;
+using KeyAttribute = MessagePack.KeyAttribute;
+
+namespace TfNet.Schemas;
+
+internal class TypeSchemaProvider<T> : ISchemaProvider
+{
+    private readonly ILogger<TypeSchemaProvider<T>> _logger;
+    private readonly ITerraformTypeBuilder _typeBuilder;
+
+    private Schema? _schema;
+
+    public TypeSchemaProvider(
+        string schemaName,
+        SchemaType schemaType,
+        ILogger<TypeSchemaProvider<T>> logger,
+        ITerraformTypeBuilder typeBuilder)
+    {
+        _logger = logger;
+        _typeBuilder = typeBuilder;
+
+        SchemaName = schemaName;
+        Type = schemaType;
+    }
+
+    public string SchemaName { get; }
+
+    public SchemaType Type { get; }
+
+    public ValueTask<Schema> GetSchemaAsync()
+    {
+        if (_schema != null)
+        {
+            return ValueTask.FromResult(_schema);
+        }
+
+        var type = typeof(T);
+
+        var schemaVersionAttribute = type.GetCustomAttribute<SchemaVersionAttribute>();
+        if (schemaVersionAttribute == null)
+        {
+            _logger.LogWarning($"Missing {nameof(SchemaVersionAttribute)} when generating schema for {type.FullName}.");
+        }
+
+        var properties = type.GetProperties();
+
+        var block = new Schema.Types.Block();
+        foreach (var property in properties)
+        {
+            var key = property.GetCustomAttribute<KeyAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {property.Name} in {type.Name}.");
+
+            var description = property.GetCustomAttribute<DescriptionAttribute>();
+            var required = TerraformTypeBuilder.IsRequiredAttribute(property);
+            var computed = property.GetCustomAttribute<ComputedAttribute>() != null;
+            var terraformType = _typeBuilder.GetTerraformType(property.PropertyType);
+
+            if (terraformType is TerraformType.TfObject _ && !required)
+            {
+                throw new InvalidOperationException("Optional object types are not supported.");
+            }
+
+            block.Attributes.Add(new Schema.Types.Attribute
+            {
+                Name = key.StringKey,
+                Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
+                Description = description?.Description ?? "",
+                Optional = !required,
+                Required = required,
+                Computed = computed
+            });
+        }
+
+        _schema = new Schema
+        {
+            Version = schemaVersionAttribute?.SchemaVersion ?? 0,
+            Block = block,
+        };
+
+        return ValueTask.FromResult(_schema);
+    }
+}

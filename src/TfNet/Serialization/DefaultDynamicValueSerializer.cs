@@ -11,9 +11,20 @@ public class DefaultDynamicValueSerializer : IDynamicValueSerializer
              ?? throw new InvalidOperationException("Invalid Json provided");
     }
 
+    public object? DeserializeJson(Type type, ReadOnlyMemory<byte> value)
+    {
+        return JsonSerializer.Deserialize(value.Span, type, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+             ?? throw new InvalidOperationException("Invalid Json provided");
+    }
+
     public T DeserializeMsgPack<T>(ReadOnlyMemory<byte> value)
     {
         return MessagePackSerializer.Deserialize<T>(value);
+    }
+
+    public object? DeserializeMsgPack(Type type, ReadOnlyMemory<byte> value)
+    {
+        return MessagePackSerializer.Deserialize(type, value);
     }
 
     byte[] IDynamicValueSerializer.SerializeMsgPack<T>(T value)
