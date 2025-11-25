@@ -6,13 +6,13 @@ using TfNet.Serialization;
 namespace TfNet.SampleCore.Resource;
 
 [SchemaVersion(1)]
-[MessagePackObject]
+[MessagePackObject(SuppressSourceGeneration = true)] // for now disable source generation due to compile error
 public class SampleFileResource
 {
     [Key("id")]
     [Computed]
     [Description("Unique ID for this resource.")]
-    [MessagePackFormatter(typeof(ComputedStringValueFormatter))]
+    [MessagePackFormatter(typeof(ComputedValueFormatter<string>))]
     public string? Id { get; set; }
 
     [Key("path")]

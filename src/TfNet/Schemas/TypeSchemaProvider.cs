@@ -72,7 +72,7 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
                 Description = description?.Description ?? "",
                 Optional = !required,
                 Required = required,
-                Computed = computed,
+                Computed = computed
             });
         }
 

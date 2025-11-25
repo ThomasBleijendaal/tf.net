@@ -85,8 +85,7 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionSchemaProv
                 Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
                 Description = description?.Description ?? "",
                 AllowNullValue = !required && !property.PropertyType.IsValueType,
-                AllowUnknownValues = false,
-                DescriptionKind = StringKind.Plain
+                AllowUnknownValues = false
             });
 
             parameters.Add(

@@ -2,10 +2,10 @@
 #      id = "fdsa"
 # }
 
-data "sampleprovider_folder" "folder" {
-    path = "./"
-}
+# data "sampleprovider_folder" "folder" {
+#     path = "./"
+# }
 
 output x {
-    value = data.sampleprovider_folder.folder.files
+    value = "test"
 }

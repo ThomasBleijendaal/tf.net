@@ -3,7 +3,8 @@
     "TfNet.SampleApiProvider": {
       "commandName": "Project",
       "environmentVariables": {
-        "DebugMode": "true"
+        "DebugMode": "true",
+        "TF_PROXY_KEY": "fdsa"
       }
     }
   }

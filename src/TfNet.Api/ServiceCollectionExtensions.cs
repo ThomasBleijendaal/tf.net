@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TfNet.Api;
 using TfNet.Extensions;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Registry;
@@ -18,7 +17,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IProviderConfigRegisterer<TConfig> AddTerraformProviderConfigurator<TConfig, TProviderConfigurator>(this IServiceCollection services)
         where TProviderConfigurator : IProviderConfigurator<TConfig>
-        // TODO: force adding host property to TConfig
     {
         services.AddSingleton(sp => new ProviderConfigurationRegistry(
             SchemaProvider: sp.BuildService<TypeSchemaProvider<TConfig>>([Constants.Provider, SchemaType.Provider]),

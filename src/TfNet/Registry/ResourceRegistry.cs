@@ -1,4 +1,5 @@
-﻿using TfNet.Providers.Data;
+﻿using Microsoft.Extensions.DependencyInjection;
+using TfNet.Providers.Data;
 using TfNet.Providers.Function;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Providers.Resource;
@@ -10,9 +11,6 @@ namespace TfNet.Registry;
 
 internal class ResourceRegistry
 {
-    private readonly IServiceProvider _serviceProvider;
-    // TODO: this nullable does not work and should be validated during startup
-    private readonly ProviderConfigurationRegistry? _providerConfigurationRegistry;
     private readonly IEnumerable<ISchemaProvider> _schemaProviders;
     private readonly Dictionary<string, IFunctionSchemaProvider> _functionProviders;
     private readonly Dictionary<string, ValidatorRegistryRegistration> _validatorRegistrations;
@@ -21,8 +19,6 @@ internal class ResourceRegistry
     private readonly Dictionary<string, FunctionRegistryRegistration> _functionRegistrations;
 
     public ResourceRegistry(
-        IServiceProvider serviceProvider,
-        ProviderConfigurationRegistry? providerConfigurationRegistry,
         IEnumerable<ISchemaProvider> schemaProviders,
         IEnumerable<IFunctionSchemaProvider> functionProviders,
         IEnumerable<ValidatorRegistryRegistration> validatorRegistrations,
@@ -30,8 +26,6 @@ internal class ResourceRegistry
         IEnumerable<DataSourceRegistryRegistration> dataSourceRegistrations,
         IEnumerable<FunctionRegistryRegistration> functionRegistrations)
     {
-        _serviceProvider = serviceProvider;
-        _providerConfigurationRegistry = providerConfigurationRegistry;
         _schemaProviders = schemaProviders;
         _functionProviders = functionProviders.ToDictionary(x => x.FunctionName);
         _validatorRegistrations = validatorRegistrations.ToDictionary(x => x.ResourceName);
@@ -46,11 +40,11 @@ internal class ResourceRegistry
 
     public IAsyncEnumerable<Registration<Function>> GetFunctionsAsync() => GetAllFunctionsAsync();
 
-    public IValidationProviderHost? GetValidationProvider(string name)
+    public IValidationProviderHost? GetValidationProvider(IServiceProvider sp, string name)
     {
         if (_validatorRegistrations.TryGetValue(name, out var registration))
         {
-            return Construct<IValidationProviderHost>(typeof(ValidationProviderHost<>).MakeGenericType(registration.Type));
+            return Construct<IValidationProviderHost>(sp, typeof(ValidationProviderHost<>).MakeGenericType(registration.Type));
         }
         else
         {
@@ -58,11 +52,13 @@ internal class ResourceRegistry
         }
     }
 
-    public IProviderConfigurationHost? GetProviderConfigurator()
+    public IProviderConfigurationHost? GetProviderConfigurator(IServiceProvider sp)
     {
-        if (_providerConfigurationRegistry is not null)
+        var registry = sp.GetService<ProviderConfigurationRegistry>();
+
+        if (registry is not null)
         {
-            return Construct<IProviderConfigurationHost>(typeof(ProviderConfigurationHost<>).MakeGenericType(_providerConfigurationRegistry.ConfigurationType));
+            return Construct<IProviderConfigurationHost>(sp, typeof(ProviderConfigurationHost<>).MakeGenericType(registry.ConfigurationType));
         }
         else
         {
@@ -70,21 +66,21 @@ internal class ResourceRegistry
         }
     }
 
-    public IResourceProviderHost? GetResourceProvider(string name)
+    public IResourceProviderHost? GetResourceProvider(IServiceProvider sp, string name)
         => _resourceRegistrations.TryGetValue(name, out var registration)
-            ? Construct<IResourceProviderHost>(typeof(ResourceProviderHost<>).MakeGenericType(registration.Type))
+            ? Construct<IResourceProviderHost>(sp, typeof(ResourceProviderHost<>).MakeGenericType(registration.Type))
             : null;
 
-    public IDataSourceProviderHost? GetDataSourceProvider(string name)
+    public IDataSourceProviderHost? GetDataSourceProvider(IServiceProvider sp, string name)
         => _dataSourceRegistrations.TryGetValue(name, out var registration)
-            ? Construct<IDataSourceProviderHost>(typeof(DataSourceProviderHost<>).MakeGenericType(registration.Type))
+            ? Construct<IDataSourceProviderHost>(sp, typeof(DataSourceProviderHost<>).MakeGenericType(registration.Type))
             : null;
 
-    public IFunctionProviderHost? GetFunctionProvider(string name)
+    public IFunctionProviderHost? GetFunctionProvider(IServiceProvider sp, string name)
     {
         if (_functionRegistrations.TryGetValue(name, out var registration))
         {
-            return Construct<IFunctionProviderHost>(typeof(FunctionProviderHost<,>).MakeGenericType(registration.Request, registration.Response));
+            return Construct<IFunctionProviderHost>(sp, typeof(FunctionProviderHost<,>).MakeGenericType(registration.Request, registration.Response));
         }
         else
         {
@@ -119,6 +115,6 @@ internal class ResourceRegistry
         }
     }
 
-    private T? Construct<T>(Type type) where T : class
-        => _serviceProvider.GetService(type) as T;
+    private static T? Construct<T>(IServiceProvider sp, Type type) where T : class
+        => sp.GetService(type) as T;
 }

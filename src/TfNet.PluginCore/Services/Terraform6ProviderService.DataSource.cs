@@ -10,15 +10,16 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
         var response = new ValidateDataResourceConfig.Types.Response();
 
         // only validate when there is a validation provider registered
-        if (_resourceRegistry.GetValidationProvider(request.TypeName) is { } provider)
+        if (_resourceRegistry.GetValidationProvider(_serviceProvider, request.TypeName) is { } provider)
         {
             response.Diagnostics.AddRange(await provider.ValidateAsync(request.Config));
         }
+
         return response;
     }
 
     public override async Task<ReadDataSource.Types.Response> ReadDataSource(ReadDataSource.Types.Request request, ServerCallContext context)
-        => _resourceRegistry.GetDataSourceProvider(request.TypeName) is { } provider
+        => _resourceRegistry.GetDataSourceProvider(_serviceProvider, request.TypeName) is { } provider
             ? await provider.ReadDataSourceAsync(request)
             : new()
             {

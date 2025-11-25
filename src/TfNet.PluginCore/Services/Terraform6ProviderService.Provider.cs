@@ -8,7 +8,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 {
     public override async Task<ConfigureProvider.Types.Response> ConfigureProvider(ConfigureProvider.Types.Request request, ServerCallContext context)
     {
-        if (_resourceRegistry.GetProviderConfigurator() is { } configurator)
+        if (_resourceRegistry.GetProviderConfigurator(_serviceProvider) is { } configurator)
         {
             await configurator.ConfigureAsync(request);
         }
@@ -21,7 +21,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
         var response = new ValidateProviderConfig.Types.Response();
 
         // only validate when there is a validation provider registered
-        if (_resourceRegistry.GetValidationProvider(Constants.Provider) is { } provider)
+        if (_resourceRegistry.GetValidationProvider(_serviceProvider, Constants.Provider) is { } provider)
         {
             response.Diagnostics.AddRange(await provider.ValidateAsync(request.Config));
         }

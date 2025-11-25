@@ -6,18 +6,18 @@ using TfNet.Serialization;
 namespace TfNet.SampleCore.DataSource;
 
 [SchemaVersion(1)]
-[MessagePackObject]
+[MessagePackObject(SuppressSourceGeneration = true)] // for now disable source generation due to compile error
 public class SampleFolderDataSource
 {
     [Key("path")]
     [Description("Path")]
     [Required]
-    [MessagePackFormatter(typeof(ComputedStringValueFormatter))]
-    public string Path { get; set; } = null!;
+    [MessagePackFormatter(typeof(ComputedValueFormatter<string?>))]
+    public string? Path { get; set; } = null!;
 
     [Key("files")]
     [Description("Files in folder")]
     [Computed]
-    [MessagePackFormatter(typeof(ComputedStringsValueFormatter))]
+    [MessagePackFormatter(typeof(ComputedValueFormatter<string?[]?>))]
     public string?[]? Files { get; set; }
 }

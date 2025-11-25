@@ -79,9 +79,10 @@ internal class ResourceProviderHost<T> : IResourceProviderHost
             // Create
             var created = await _resourceProvider.CreateAsync(planned);
             var createdSerialized = _serializer.SerializeDynamicValue(created);
+
             return new ApplyResourceChange.Types.Response
             {
-                NewState = createdSerialized,
+                NewState = createdSerialized
             };
         }
         else

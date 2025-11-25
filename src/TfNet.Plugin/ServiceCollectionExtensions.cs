@@ -12,6 +12,7 @@ namespace TfNet.Plugin;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+
     /// <summary>
     /// Adds a configurator that will be called when configuring this terraform plugin.
     /// </summary>

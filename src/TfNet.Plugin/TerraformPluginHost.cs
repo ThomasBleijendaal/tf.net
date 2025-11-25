@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TfNet.Registry;
@@ -46,11 +45,6 @@ public static class TerraformPluginHost
         string fullProviderName,
         Action<IServiceCollection, IResourceRegistryContext> configure) =>
         Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration(configuration =>
-            {
-                configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "serilog.json"), optional: true);
-                configuration.AddJsonFile("serilog.json", optional: true);
-            })
             .ConfigureServices((host, services) =>
             {
                 services.Configure<TerraformPluginHostOptions>(host.Configuration);
