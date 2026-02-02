@@ -6,7 +6,7 @@ namespace TfNet.PluginCore.Services;
 internal partial class Terraform6ProviderService : Provider.ProviderBase
 {
     public override async Task<CallFunction.Types.Response> CallFunction(CallFunction.Types.Request request, ServerCallContext context)
-        => _resourceRegistry.GetFunctionProvider(_serviceProvider, request.Name) is { } provider
+        => (await _resourceRegistry.GetFunctionProviderAsync(_serviceProvider, request.Name)) is { } provider
             ? await provider.CallFunctionAsync(request)
             : new()
             {

@@ -16,6 +16,10 @@ output test {
   value = data.sampleprovider_folder.folder.files
 }
 
+output test2 {
+  value = provider::sampleprovider::sampleprovider_policy1("test", 1)
+}
+
 output concat {
   value = provider::sampleprovider::sampleprovider_concat("f", "a")
 }

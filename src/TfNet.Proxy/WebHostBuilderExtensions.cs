@@ -12,22 +12,24 @@ namespace TfNet.Proxy;
 
 public static class WebHostBuilderExtensions
 {
+    public const int DefaultPort = 5344;
+
     extension(IWebHostBuilder webBuilder)
     {
-        public IWebHostBuilder ConfigureTerraformPlugin(Action<IServiceCollection, IResourceRegistryContext> configureRegistry, int? port)
+        public IWebHostBuilder ConfigureTerraformPlugin(Action<IServiceCollection, IResourceRegistryContext> configureRegistry, int? port = null)
         {
-            var tcpPort = port ?? PortHelper.GetFreeTcpPort();
-
             webBuilder.ConfigureKestrel(kestrel =>
             {
                 var debugMode = kestrel.ApplicationServices.GetRequiredService<IOptions<TerraformPluginHostOptions>>().Value.DebugMode;
 
                 if (debugMode)
                 {
+                    var tcpPort = port ?? DefaultPort;
                     kestrel.ListenLocalhost(tcpPort, x => x.Protocols = HttpProtocols.Http2);
                 }
                 else
                 {
+                    var tcpPort = port ?? PortHelper.GetFreeTcpPort();
                     kestrel.ListenLocalhost(tcpPort, x => x.UseHttps(x =>
                     {
                         var certificate = kestrel.ApplicationServices.GetService<PluginHostCertificate>()

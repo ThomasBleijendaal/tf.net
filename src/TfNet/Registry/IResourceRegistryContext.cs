@@ -1,4 +1,6 @@
-﻿namespace TfNet.Registry;
+﻿using TfNet.Schemas;
+
+namespace TfNet.Registry;
 
 public interface IResourceRegistryContext
 {
@@ -8,4 +10,7 @@ public interface IResourceRegistryContext
 
     IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName)
         where TRequest : new();
+
+    void RegisterFunctions<TFunctionHandler>(string functionNamePrefix)
+        where TFunctionHandler : IFunctionHandler;
 }

@@ -54,6 +54,17 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
         return new ServiceCollectionFunctionRegisterer<TRequest>(_services, functionName);
     }
 
+    public void RegisterFunctions<TFunctionHandler>(string functionNamePrefix) where TFunctionHandler : IFunctionHandler
+    {
+        if (!functionNamePrefix.EndsWith('_'))
+        {
+            throw new ArgumentException("Value must end with underscore", nameof(functionNamePrefix));
+        }
+
+        _services.AddSingleton<IDynamicFunctionSchemaProvider>(
+            sp => sp.BuildService<DynamicFunctionSchemaProvider<TFunctionHandler>>([functionNamePrefix]));
+    }
+
     private static void EnsureValidType<T>()
     {
         // Validation

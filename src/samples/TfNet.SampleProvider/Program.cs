@@ -6,6 +6,7 @@ using TfNet.Providers.Resource;
 using TfNet.Providers.Validation;
 using TfNet.SampleCore;
 using TfNet.SampleCore.DataSource;
+using TfNet.SampleCore.DynamicFunction;
 using TfNet.SampleCore.Function;
 using TfNet.SampleCore.Resource;
 
@@ -28,4 +29,7 @@ await TerraformPluginHost.RunAsync(args, "example.com/example/sampleprovider", (
 
     services.AddSingleton<IFunctionProvider<ConcatRequest, ConcatResponse>, ConcatFunction>();
     registry.RegisterFunction<ConcatRequest, ConcatResponse>("sampleprovider_concat");
+
+    services.AddSingleton<DynamicFunctionProvider>();
+    registry.RegisterFunctions<DynamicFunctionProvider>("sampleprovider_");
 });

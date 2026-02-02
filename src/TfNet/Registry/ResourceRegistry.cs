@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TfNet.Extensions;
 using TfNet.Providers.Data;
 using TfNet.Providers.Function;
 using TfNet.Providers.ProviderConfig;
@@ -12,26 +13,29 @@ namespace TfNet.Registry;
 internal class ResourceRegistry
 {
     private readonly IEnumerable<ISchemaProvider> _schemaProviders;
+    private readonly IEnumerable<IDynamicFunctionSchemaProvider> _dynamicFunctionProviders;
     private readonly Dictionary<string, IFunctionSchemaProvider> _functionProviders;
     private readonly Dictionary<string, ValidatorRegistryRegistration> _validatorRegistrations;
     private readonly Dictionary<string, ResourceRegistryRegistration> _resourceRegistrations;
     private readonly Dictionary<string, DataSourceRegistryRegistration> _dataSourceRegistrations;
-    private readonly Dictionary<string, FunctionRegistryRegistration> _functionRegistrations;
+    private readonly Dictionary<string, IFunctionRegistration> _functionRegistrations;
 
     public ResourceRegistry(
         IEnumerable<ISchemaProvider> schemaProviders,
         IEnumerable<IFunctionSchemaProvider> functionProviders,
+        IEnumerable<IDynamicFunctionSchemaProvider> dynamicFunctionProviders,
         IEnumerable<ValidatorRegistryRegistration> validatorRegistrations,
         IEnumerable<ResourceRegistryRegistration> resourceRegistrations,
         IEnumerable<DataSourceRegistryRegistration> dataSourceRegistrations,
         IEnumerable<FunctionRegistryRegistration> functionRegistrations)
     {
         _schemaProviders = schemaProviders;
+        _dynamicFunctionProviders = dynamicFunctionProviders;
         _functionProviders = functionProviders.ToDictionary(x => x.FunctionName);
         _validatorRegistrations = validatorRegistrations.ToDictionary(x => x.ResourceName);
         _resourceRegistrations = resourceRegistrations.ToDictionary(x => x.ResourceName);
         _dataSourceRegistrations = dataSourceRegistrations.ToDictionary(x => x.ResourceName);
-        _functionRegistrations = functionRegistrations.ToDictionary(x => x.ResourceName);
+        _functionRegistrations = functionRegistrations.ToDictionary(x => x.ResourceName, x => (IFunctionRegistration)x);
     }
 
     public IAsyncEnumerable<Registration<Schema>> GetSchemasAsync() => GetSchemasOfTypeAsync(SchemaType.Resource);
@@ -76,15 +80,30 @@ internal class ResourceRegistry
             ? Construct<IDataSourceProviderHost>(sp, typeof(DataSourceProviderHost<>).MakeGenericType(registration.Type))
             : null;
 
-    public IFunctionProviderHost? GetFunctionProvider(IServiceProvider sp, string name)
+    public async Task<IFunctionProviderHost?> GetFunctionProviderAsync(IServiceProvider sp, string name)
     {
-        if (_functionRegistrations.TryGetValue(name, out var registration))
+        if (!_functionRegistrations.TryGetValue(name, out var registration))
         {
-            return Construct<IFunctionProviderHost>(sp, typeof(FunctionProviderHost<,>).MakeGenericType(registration.Request, registration.Response));
+            // GetAllFunctionAsync() might not have run so run it again and try again
+            await GetAllFunctionsAsync().ToListAsync();
+
+            if (!_functionRegistrations.TryGetValue(name, out registration))
+            {
+                return null;
+            }
+        }
+
+        if (registration is FunctionRegistryRegistration function)
+        {
+            return Construct<IFunctionProviderHost>(sp, typeof(FunctionProviderHost<,>).MakeGenericType(function.Request, function.Response));
+        }
+        else if (registration is DynamicFunctionRegistryRegistration dynamicFunction)
+        {
+            return sp.BuildService<DynamicFunctionProviderHost>([dynamicFunction]);
         }
         else
         {
-            return null;
+            throw new NotSupportedException("FunctionRegistration not supported");
         }
     }
 
@@ -105,6 +124,7 @@ internal class ResourceRegistry
         }
     }
 
+    // TODO: this needs to be refactored into an initialization step
     private async IAsyncEnumerable<Registration<Function>> GetAllFunctionsAsync()
     {
         foreach (var functionProvider in _functionProviders.Values)
@@ -112,6 +132,23 @@ internal class ResourceRegistry
             var function = await functionProvider.GetFunctionSchemaAsync();
 
             yield return new(functionProvider.FunctionName, function);
+        }
+
+        foreach (var provider in _dynamicFunctionProviders)
+        {
+            var functions = await provider.GetFunctionSchemasAsync();
+
+            foreach (var (name, functionProvider) in functions)
+            {
+                _functionProviders[name] = functionProvider;
+
+                var handlerFunctionName = name.Replace(provider.FunctionNamePrefix, "");
+
+                _functionRegistrations[name] = new DynamicFunctionRegistryRegistration(name, handlerFunctionName, provider.Handler);
+
+                var function = await functionProvider.GetFunctionSchemaAsync();
+                yield return new(name, function);
+            }
         }
     }
 
