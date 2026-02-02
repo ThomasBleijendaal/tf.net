@@ -22,10 +22,7 @@ internal class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddGrpc(options =>
-        {
-
-        });
+        services.AddGrpc();
 
         services.AddTransient<ITerraformTypeBuilder, TerraformTypeBuilder>();
         services.AddTransient(typeof(ProviderConfigurationHost<>));

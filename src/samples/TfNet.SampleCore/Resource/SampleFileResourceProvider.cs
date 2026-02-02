@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using TfNet.Models;
 using TfNet.Providers.Resource;
-using TfNet.SampleCore;
 
 namespace TfNet.SampleCore.Resource;
 
