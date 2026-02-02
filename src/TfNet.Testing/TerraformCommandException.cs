@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace TfNet.Testing;
 
@@ -18,7 +17,7 @@ public class TerraformCommandException : Exception
         Command = command;
         TimedOutAfter = timedOutAfter;
         Output = output;
-        Message = $"Terraform timed out after {TimedOutAfter.Value.TotalSeconds:N2}s.{Environment.NewLine}{Environment.NewLine}{output}";
+        Message = $"Terraform timed out after {TimedOutAfter?.TotalSeconds:N2}s.{Environment.NewLine}{Environment.NewLine}{output}";
     }
 
     public override string Message { get; }

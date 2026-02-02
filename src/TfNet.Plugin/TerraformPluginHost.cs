@@ -27,7 +27,10 @@ public static class TerraformPluginHost
 
         try
         {
-            await CreateHostBuilder(args, fullProviderName, configure).Build().RunAsync(token);
+            var host = CreateHostBuilder(args, fullProviderName, configure).Build();
+            var asyncInitializedServices = host.Services.GetRequiredService<IEnumerable<IAsyncInitialized>>();
+            await Task.WhenAll(asyncInitializedServices.Select(x => x.InitializeAsync()));
+            await host.RunAsync(token);
         }
         catch (Exception ex)
         {

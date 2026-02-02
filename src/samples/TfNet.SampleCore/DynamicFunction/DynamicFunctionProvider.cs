@@ -17,19 +17,31 @@ public class DynamicFunctionProvider : IFunctionHandler
     {
         var result = new Dictionary<string, FunctionSignature>
         {
-            ["policy1"] = new FunctionSignature(
-                new Dictionary<string, Type>
+            ["policy1"] = new FunctionSignature
+            {
+                MarkdownDescription = """
+                This is some description
+
+                ```xml
+                <wow>even code</wow>
+                ```
+                """,
+                Summary = "This is some summary",
+                Request = new Dictionary<string, FunctionSignature.TypeInfo>
                 {
-                    ["name"] = typeof(string),
-                    ["limit"] = typeof(int)
+                    ["name"] = new(typeof(string)),
+                    ["limit"] = new(typeof(int))
                 },
-                typeof(string)),
-            ["policy2"] = new FunctionSignature(
-                new Dictionary<string, Type>
+                Response = typeof(string)
+            },
+            ["policy2"] = new FunctionSignature
+            {
+                Request = new Dictionary<string, FunctionSignature.TypeInfo>
                 {
-                    ["value"] = typeof(string)
+                    ["value"] = new(typeof(string))
                 },
-                typeof(string))
+                Response = typeof(string)
+            }
         };
 
         return ValueTask.FromResult(result);

@@ -31,9 +31,9 @@ internal class FunctionSignatureSetter : IParameterSetter
                 throw new ArgumentException("Invalid request");
             }
 
-            var (name, type) = requestArguments[i];
+            var (name, typeInfo) = requestArguments[i];
 
-            var value = serializer.DeserializeDynamicValue(type, arg);
+            var value = serializer.DeserializeDynamicValue(typeInfo.Type, arg);
 
             dictionaryTarget[name] = value;
 

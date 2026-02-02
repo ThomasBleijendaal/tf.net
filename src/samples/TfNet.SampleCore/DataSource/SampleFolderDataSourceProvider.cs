@@ -6,7 +6,7 @@ public class SampleFolderDataSourceProvider : IDataSourceProvider<SampleFolderDa
 {
     public Task<SampleFolderDataSource> ReadAsync(SampleFolderDataSource request)
     {
-        var files = Directory.GetFiles(request.Path);
+        var files = Directory.GetFiles(request.Path ?? "./");
 
         return Task.FromResult(new SampleFolderDataSource
         {

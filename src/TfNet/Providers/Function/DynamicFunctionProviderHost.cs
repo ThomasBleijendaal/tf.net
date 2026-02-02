@@ -6,16 +6,16 @@ namespace TfNet.Providers.Function;
 
 internal class DynamicFunctionProviderHost : IFunctionProviderHost
 {
-    private readonly ResourceRegistry _resourceRegistry;
+    private readonly FunctionRegistry _functionRegistry;
     private readonly DynamicFunctionRegistryRegistration _functionRegistration;
     private readonly IDynamicValueSerializer _serializer;
 
     public DynamicFunctionProviderHost(
-        ResourceRegistry resourceRegistry,
+        FunctionRegistry functionRegistry,
         DynamicFunctionRegistryRegistration functionRegistration,
         IDynamicValueSerializer serializer)
     {
-        _resourceRegistry = resourceRegistry;
+        _functionRegistry = functionRegistry;
         _functionRegistration = functionRegistration;
         _serializer = serializer;
     }
@@ -24,7 +24,7 @@ internal class DynamicFunctionProviderHost : IFunctionProviderHost
     {
         var req = new Dictionary<string, object>();
 
-        var setter = await _resourceRegistry.GetFunctionRequestSetterAsync(_functionRegistration.ResourceName);
+        var setter = await _functionRegistry.GetFunctionRequestSetterAsync(_functionRegistration.ResourceName);
         if (setter == null)
         {
             return new CallFunction.Types.Response

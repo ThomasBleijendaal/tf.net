@@ -7,16 +7,16 @@ namespace TfNet.Providers.Function;
 internal class FunctionProviderHost<TRequest, TResponse> : IFunctionProviderHost
     where TRequest : new()
 {
-    private readonly ResourceRegistry _resourceRegistry;
+    private readonly FunctionRegistry _functionRegistry;
     private readonly IFunctionProvider<TRequest, TResponse> _functionProvider;
     private readonly IDynamicValueSerializer _serializer;
 
     public FunctionProviderHost(
-        ResourceRegistry resourceRegistry,
+        FunctionRegistry functionRegistry,
         IFunctionProvider<TRequest, TResponse> functionProvider,
         IDynamicValueSerializer serializer)
     {
-        _resourceRegistry = resourceRegistry;
+        _functionRegistry = functionRegistry;
         _functionProvider = functionProvider;
         _serializer = serializer;
     }
@@ -25,7 +25,7 @@ internal class FunctionProviderHost<TRequest, TResponse> : IFunctionProviderHost
     {
         var req = new TRequest();
 
-        var setter = await _resourceRegistry.GetFunctionRequestSetterAsync(request.Name);
+        var setter = await _functionRegistry.GetFunctionRequestSetterAsync(request.Name);
         if (setter == null)
         {
             return new CallFunction.Types.Response

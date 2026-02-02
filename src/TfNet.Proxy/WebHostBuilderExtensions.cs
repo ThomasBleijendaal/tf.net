@@ -56,7 +56,7 @@ public static class WebHostBuilderExtensions
             webBuilder.ConfigureServices(services =>
             {
                 services.AddOptions<TerraformPluginHostOptions>().ValidateDataAnnotations();
-                services.AddSingleton<ResourceRegistry>();
+                services.AddCoreServices();
 
                 var registryContext = new ServiceCollectionResourceRegistryContext(services);
                 configureRegistry(services, registryContext);

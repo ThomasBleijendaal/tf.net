@@ -60,9 +60,9 @@ internal class DynamicFunctionSchemaProvider<TFunctionHandler> : IDynamicFunctio
 
             var function = new Function
             {
-                // TODO: fix
-                Description = "TODO",
-                Summary = "TODO",
+                Summary = _functionSignature.Summary ?? "",
+                Description = _functionSignature.MarkdownDescription ?? "",
+                DescriptionKind = StringKind.Markdown,
 
                 Return = new Function.Types.Return
                 {
@@ -70,16 +70,17 @@ internal class DynamicFunctionSchemaProvider<TFunctionHandler> : IDynamicFunctio
                 }
             };
 
-            foreach (var (name, type) in _functionSignature.Request)
+            foreach (var (name, typeInfo) in _functionSignature.Request)
             {
-                var terraformType = _typeBuilder.GetTerraformType(type);
+                var terraformType = _typeBuilder.GetTerraformType(typeInfo.Type);
 
                 function.Parameters.Add(new Function.Types.Parameter
                 {
                     Name = name,
                     Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
-                    Description = "",
-                    AllowNullValue = !type.IsValueType,
+                    Description = typeInfo.MarkdownDescription ?? "",
+                    DescriptionKind = StringKind.Markdown,
+                    AllowNullValue = !typeInfo.Type.IsValueType,
                     AllowUnknownValues = false
                 });
             }
@@ -89,6 +90,5 @@ internal class DynamicFunctionSchemaProvider<TFunctionHandler> : IDynamicFunctio
 
         public ValueTask<IParameterSetter> GetRequestSetterAsync()
             => ValueTask.FromResult<IParameterSetter>(new FunctionSignatureSetter(_functionSignature));
-
     }
 }

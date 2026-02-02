@@ -49,7 +49,7 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
             res.DataSourceSchemas.Add(key, schema);
         }
 
-        var functions = await _resourceRegistry.GetFunctionsAsync().ToArrayAsync();
+        var functions = _functionRegistry.GetFunctions();
         foreach (var (key, function) in functions)
         {
             res.Functions.Add(key, function);

@@ -11,17 +11,20 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
     private readonly IServiceProvider _serviceProvider;
     private readonly IHostApplicationLifetime _lifetime;
     private readonly ResourceRegistry _resourceRegistry;
+    private readonly FunctionRegistry _functionRegistry;
     private readonly ProviderConfigurationRegistry? _providerConfiguration;
 
     public Terraform6ProviderService(
         IServiceProvider serviceProvider,
         IHostApplicationLifetime lifetime,
         ResourceRegistry resourceRegistry,
+        FunctionRegistry functionRegistry,
         ProviderConfigurationRegistry? providerConfiguration = null)
     {
         _serviceProvider = serviceProvider;
         _lifetime = lifetime;
         _resourceRegistry = resourceRegistry;
+        _functionRegistry = functionRegistry;
         _providerConfiguration = providerConfiguration;
     }
 

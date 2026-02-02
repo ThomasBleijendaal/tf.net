@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TfNet.Extensions;
 using TfNet.Helpers;
 using TfNet.Registry;
 
@@ -55,7 +56,7 @@ public static class WebHostBuilderExtensions
             webBuilder.ConfigureServices(services =>
             {
                 services.AddOptions<TerraformPluginHostOptions>().ValidateDataAnnotations();
-                services.AddSingleton<ResourceRegistry>();
+                services.AddCoreServices();
 
                 var registryContext = new ServiceCollectionResourceRegistryContext(services);
 
