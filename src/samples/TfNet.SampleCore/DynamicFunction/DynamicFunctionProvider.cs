@@ -4,15 +4,6 @@ namespace TfNet.SampleCore.DynamicFunction;
 
 public class DynamicFunctionProvider : IFunctionHandler
 {
-    // ensures DI works
-    private readonly SampleConfigurator _sampleConfigurator;
-
-    public DynamicFunctionProvider(
-        SampleConfigurator sampleConfigurator)
-    {
-        _sampleConfigurator = sampleConfigurator;
-    }
-
     public ValueTask<Dictionary<string, FunctionSignature>> GetFunctionsAsync()
     {
         var result = new Dictionary<string, FunctionSignature>

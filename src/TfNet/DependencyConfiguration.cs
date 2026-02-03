@@ -11,7 +11,7 @@ public static class DependencyConfiguration
         public void AddCoreServices()
         {
             services.AddAsyncInitializedSingleton<FunctionRegistry>();
-            services.AddAsyncInitializedSingleton<ResourceRegistry>();
+            services.AddSingleton<ResourceRegistry>();
         }
     }
 }

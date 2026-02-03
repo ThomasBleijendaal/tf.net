@@ -9,7 +9,7 @@ using Tfplugin6;
 
 namespace TfNet.Registry;
 
-internal class ResourceRegistry : IAsyncInitialized
+internal class ResourceRegistry
 {
     private readonly IEnumerable<ISchemaProvider> _schemaProviders;
     private readonly Dictionary<string, ValidatorRegistryRegistration> _validatorRegistrations;
@@ -26,10 +26,6 @@ internal class ResourceRegistry : IAsyncInitialized
         _validatorRegistrations = validatorRegistrations.ToDictionary(x => x.ResourceName);
         _resourceRegistrations = resourceRegistrations.ToDictionary(x => x.ResourceName);
         _dataSourceRegistrations = dataSourceRegistrations.ToDictionary(x => x.ResourceName);
-    }
-
-    public async Task InitializeAsync()
-    {
     }
 
     public IAsyncEnumerable<Registration<Schema>> GetSchemasAsync() => GetSchemasOfTypeAsync(SchemaType.Resource);
@@ -71,7 +67,6 @@ internal class ResourceRegistry : IAsyncInitialized
         => _dataSourceRegistrations.TryGetValue(name, out var registration)
             ? Construct<IDataSourceProviderHost>(sp, typeof(DataSourceProviderHost<>).MakeGenericType(registration.Type))
             : null;
-
 
     public Dictionary<string, Type> DataTypes { get; } = new Dictionary<string, Type>();
 

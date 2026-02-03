@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Reflection;
+﻿using System.Reflection;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using TfNet.Resources;
@@ -50,31 +49,7 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
 
         var properties = type.GetProperties();
 
-        var block = new Schema.Types.Block();
-        foreach (var property in properties)
-        {
-            var key = property.GetCustomAttribute<KeyAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {property.Name} in {type.Name}.");
-
-            var description = property.GetCustomAttribute<DescriptionAttribute>();
-            var required = TerraformTypeBuilder.IsRequiredAttribute(property);
-            var computed = property.GetCustomAttribute<ComputedAttribute>() != null;
-            var terraformType = _typeBuilder.GetTerraformType(property.PropertyType);
-
-            if (terraformType is TerraformType.TfObject _ && !required)
-            {
-                throw new InvalidOperationException("Optional object types are not supported.");
-            }
-
-            block.Attributes.Add(new Schema.Types.Attribute
-            {
-                Name = key.StringKey,
-                Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
-                Description = description?.Description ?? "",
-                Optional = !required,
-                Required = required,
-                Computed = computed
-            });
-        }
+        var block = ConvertPropertiesToBlock(type, properties);
 
         _schema = new Schema
         {
@@ -83,5 +58,74 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
         };
 
         return ValueTask.FromResult(_schema);
+    }
+
+    private Schema.Types.Block ConvertPropertiesToBlock(Type type, PropertyInfo[] properties)
+    {
+        var block = new Schema.Types.Block();
+
+        var blockDescription = type.GetCustomAttribute<DescriptionAttribute>();
+        block.Description = blockDescription?.MarkdownDescription ?? "";
+        block.DescriptionKind = StringKind.Markdown;
+
+        foreach (var property in properties)
+        {
+            var key = property.GetCustomAttribute<KeyAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {property.Name} in {type.Name}.");
+
+            var description = property.GetCustomAttribute<DescriptionAttribute>();
+            var required = TerraformTypeBuilder.IsRequiredAttribute(property);
+            var isComputed = property.GetCustomAttribute<ComputedAttribute>() != null;
+            var nestedBlock = property.GetCustomAttribute<NestedBlockAttribute>();
+
+            if (nestedBlock == null)
+            {
+                var terraformType = _typeBuilder.GetTerraformType(property.PropertyType);
+                if (terraformType is TerraformType.TfObject && !required)
+                {
+                    throw new InvalidOperationException("Optional object types are not supported.");
+                }
+
+                block.Attributes.Add(new Schema.Types.Attribute
+                {
+                    Name = key.StringKey,
+                    Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
+                    Description = description?.MarkdownDescription ?? "",
+                    DescriptionKind = StringKind.Markdown,
+                    Optional = !required,
+                    Required = required,
+                    Computed = isComputed
+                });
+            }
+            else
+            {
+                var propertyType = property.PropertyType;
+                if (propertyType == null)
+                {
+                    continue;
+                }
+
+                var genericBaseType = !propertyType.IsGenericType ? null : propertyType.GetGenericTypeDefinition();
+
+                var (nesting, nestedBlockType) = propertyType switch
+                {
+                    var single when genericBaseType == null => (Schema.Types.NestedBlock.Types.NestingMode.Single, single),
+                    var array when propertyType.IsArray && propertyType.HasElementType => (Schema.Types.NestedBlock.Types.NestingMode.List, array.GetElementType()!),
+                    var set when genericBaseType == typeof(List<>) => (Schema.Types.NestedBlock.Types.NestingMode.Set, set.GenericTypeArguments[0]),
+                    var map when genericBaseType == typeof(Dictionary<,>) => (Schema.Types.NestedBlock.Types.NestingMode.Map, map.GenericTypeArguments[1]),
+                    _ => throw new InvalidOperationException("Unsupported block type, only classes, arrays, lists and dictionaries are supported")
+                };
+
+                block.BlockTypes.Add(new Schema.Types.NestedBlock
+                {
+                    TypeName = key.StringKey,
+                    MinItems = nestedBlock.MinItems,
+                    MaxItems = nestedBlock.MaxItems,
+                    Nesting = nesting,
+                    Block = ConvertPropertiesToBlock(nestedBlockType, nestedBlockType.GetProperties())
+                });
+            }
+        }
+
+        return block;
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using MessagePack;
+﻿using MessagePack;
 using TfNet.Resources;
 using TfNet.Serialization;
 

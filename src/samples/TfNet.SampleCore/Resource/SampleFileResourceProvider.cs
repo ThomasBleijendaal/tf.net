@@ -40,6 +40,11 @@ public class SampleFileResourceProvider : IResourceProvider<SampleFileResource>
 
     public async Task<SampleFileResource> ReadAsync(SampleFileResource resource)
     {
+        if (!File.Exists(resource.Path))
+        {
+            return resource;
+        }
+
         var content = await File.ReadAllTextAsync(resource.Path);
         resource.Content = content;
         return resource;

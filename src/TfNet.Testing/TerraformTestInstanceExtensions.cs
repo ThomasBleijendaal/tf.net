@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using TfNet.Testing.Json;
 
 namespace TfNet.Testing;
@@ -25,7 +23,7 @@ public static class TerraformTestInstanceExtensions
         {
             await terraform.RunCommandAsync($"plan -no-color -out=\"{tmp}\"");
             var jsonPlan = await terraform.RunCommandAsync($"show -json \"{tmp}\"");
-            return JsonSerializer.Deserialize<TerraformJsonPlan>(jsonPlan);
+            return JsonSerializer.Deserialize<TerraformJsonPlan>(jsonPlan)!;
         }
         finally
         {
