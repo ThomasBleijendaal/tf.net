@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TfNet.Extensions;
 using TfNet.Providers.Data;
-using TfNet.Providers.Function;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Providers.Resource;
 using TfNet.Providers.Validation;
@@ -12,33 +12,25 @@ namespace TfNet.Registry;
 internal class ResourceRegistry
 {
     private readonly IEnumerable<ISchemaProvider> _schemaProviders;
-    private readonly Dictionary<string, IFunctionSchemaProvider> _functionProviders;
     private readonly Dictionary<string, ValidatorRegistryRegistration> _validatorRegistrations;
     private readonly Dictionary<string, ResourceRegistryRegistration> _resourceRegistrations;
     private readonly Dictionary<string, DataSourceRegistryRegistration> _dataSourceRegistrations;
-    private readonly Dictionary<string, FunctionRegistryRegistration> _functionRegistrations;
 
     public ResourceRegistry(
         IEnumerable<ISchemaProvider> schemaProviders,
-        IEnumerable<IFunctionSchemaProvider> functionProviders,
         IEnumerable<ValidatorRegistryRegistration> validatorRegistrations,
         IEnumerable<ResourceRegistryRegistration> resourceRegistrations,
-        IEnumerable<DataSourceRegistryRegistration> dataSourceRegistrations,
-        IEnumerable<FunctionRegistryRegistration> functionRegistrations)
+        IEnumerable<DataSourceRegistryRegistration> dataSourceRegistrations)
     {
         _schemaProviders = schemaProviders;
-        _functionProviders = functionProviders.ToDictionary(x => x.FunctionName);
         _validatorRegistrations = validatorRegistrations.ToDictionary(x => x.ResourceName);
         _resourceRegistrations = resourceRegistrations.ToDictionary(x => x.ResourceName);
         _dataSourceRegistrations = dataSourceRegistrations.ToDictionary(x => x.ResourceName);
-        _functionRegistrations = functionRegistrations.ToDictionary(x => x.ResourceName);
     }
 
     public IAsyncEnumerable<Registration<Schema>> GetSchemasAsync() => GetSchemasOfTypeAsync(SchemaType.Resource);
 
     public IAsyncEnumerable<Registration<Schema>> GetDataSchemasAsync() => GetSchemasOfTypeAsync(SchemaType.DataResource);
-
-    public IAsyncEnumerable<Registration<Function>> GetFunctionsAsync() => GetAllFunctionsAsync();
 
     public IValidationProviderHost? GetValidationProvider(IServiceProvider sp, string name)
     {
@@ -76,23 +68,6 @@ internal class ResourceRegistry
             ? Construct<IDataSourceProviderHost>(sp, typeof(DataSourceProviderHost<>).MakeGenericType(registration.Type))
             : null;
 
-    public IFunctionProviderHost? GetFunctionProvider(IServiceProvider sp, string name)
-    {
-        if (_functionRegistrations.TryGetValue(name, out var registration))
-        {
-            return Construct<IFunctionProviderHost>(sp, typeof(FunctionProviderHost<,>).MakeGenericType(registration.Request, registration.Response));
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    public async ValueTask<IParameterSetter?> GetFunctionRequestSetterAsync(string name)
-        => _functionProviders.TryGetValue(name, out var functionProvider)
-            ? (await functionProvider.GetRequestSetterAsync())
-            : null;
-
     public Dictionary<string, Type> DataTypes { get; } = new Dictionary<string, Type>();
 
     private async IAsyncEnumerable<Registration<Schema>> GetSchemasOfTypeAsync(SchemaType schemaType)
@@ -102,16 +77,6 @@ internal class ResourceRegistry
             var schema = await schemaProvider.GetSchemaAsync();
 
             yield return new(schemaProvider.SchemaName, schema);
-        }
-    }
-
-    private async IAsyncEnumerable<Registration<Function>> GetAllFunctionsAsync()
-    {
-        foreach (var functionProvider in _functionProviders.Values)
-        {
-            var function = await functionProvider.GetFunctionSchemaAsync();
-
-            yield return new(functionProvider.FunctionName, function);
         }
     }
 

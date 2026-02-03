@@ -55,8 +55,9 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionSchemaProv
 
         var function = new Function
         {
-            Description = "TODO",
-            Summary = "TODO",
+            // TODO: fix
+            Description = "",
+            Summary = "",
 
             Return = new Function.Types.Return
             {

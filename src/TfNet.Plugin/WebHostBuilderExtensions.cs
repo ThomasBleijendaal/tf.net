@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TfNet.Extensions;
+using TfNet.Helpers;
 using TfNet.Registry;
 
 namespace TfNet.Plugin;
@@ -14,7 +16,7 @@ public static class WebHostBuilderExtensions
 
     extension(IWebHostBuilder webBuilder)
     {
-        public IWebHostBuilder ConfigureTerraformPlugin(Action<IServiceCollection, IResourceRegistryContext> configureRegistry, int port = DefaultPort)
+        public IWebHostBuilder ConfigureTerraformPlugin(Action<IServiceCollection, IResourceRegistryContext> configureRegistry, int? port = null)
         {
             webBuilder.ConfigureKestrel(kestrel =>
             {
@@ -22,11 +24,13 @@ public static class WebHostBuilderExtensions
 
                 if (debugMode)
                 {
-                    kestrel.ListenLocalhost(port, x => x.Protocols = HttpProtocols.Http2);
+                    var tcpPort = port ?? DefaultPort;
+                    kestrel.ListenLocalhost(tcpPort, x => x.Protocols = HttpProtocols.Http2);
                 }
                 else
                 {
-                    kestrel.ListenLocalhost(port, x => x.UseHttps(x =>
+                    var tcpPort = port ?? PortHelper.GetFreeTcpPort();
+                    kestrel.ListenLocalhost(tcpPort, x => x.UseHttps(x =>
                     {
                         var certificate = kestrel.ApplicationServices.GetService<PluginHostCertificate>()
                             ?? throw new InvalidOperationException("Debug mode is not enabled, but no certificate was found.");
@@ -51,9 +55,6 @@ public static class WebHostBuilderExtensions
 
             webBuilder.ConfigureServices(services =>
             {
-                services.AddOptions<TerraformPluginHostOptions>().ValidateDataAnnotations();
-                services.AddSingleton<ResourceRegistry>();
-
                 var registryContext = new ServiceCollectionResourceRegistryContext(services);
 
                 try

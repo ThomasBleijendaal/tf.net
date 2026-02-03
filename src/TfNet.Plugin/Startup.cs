@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 using TfNet.PluginCore.Services;
 using TfNet.Providers.Data;
@@ -22,10 +23,7 @@ internal class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddGrpc(options =>
-        {
-
-        });
+        services.AddGrpc();
 
         services.AddTransient<ITerraformTypeBuilder, TerraformTypeBuilder>();
         services.AddTransient(typeof(ProviderConfigurationHost<>));
@@ -34,6 +32,9 @@ internal class Startup
         services.AddTransient(typeof(FunctionProviderHost<,>));
         services.AddTransient(typeof(IResourceUpgrader<>), typeof(DefaultResourceUpgrader<>));
         services.AddTransient<IDynamicValueSerializer, DefaultDynamicValueSerializer>();
+
+        services.AddOptions<TerraformPluginHostOptions>().ValidateDataAnnotations();
+        services.AddCoreServices();
 
         var otel = services.AddOpenTelemetry();
 
@@ -75,6 +76,4 @@ internal class Startup
             });
         });
     }
-
-
 }

@@ -33,7 +33,7 @@ class TerraformTestInstance : ITerraformTestInstance
         };
 
         startInfo.EnvironmentVariables.Add("TF_REATTACH_PROVIDERS", $@"{{""example.com/example/{_providerName}"":{{""Protocol"":""grpc"",""ProtocolVersion"":6,""Pid"":{Environment.ProcessId},""Test"":true,""Addr"":{{""Network"":""tcp"",""String"":""127.0.0.1:{_port}""}}}}}}");
-        var p = Process.Start(startInfo);
+        var p = Process.Start(startInfo)!;
 
         var output = new StringBuilder();
         p.OutputDataReceived += (sender, e) => output.AppendLine(e.Data);

@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using TfNet.Models;
 using TfNet.Providers.Resource;
-using TfNet.SampleCore;
 
 namespace TfNet.SampleCore.Resource;
 
@@ -41,6 +40,11 @@ public class SampleFileResourceProvider : IResourceProvider<SampleFileResource>
 
     public async Task<SampleFileResource> ReadAsync(SampleFileResource resource)
     {
+        if (!File.Exists(resource.Path))
+        {
+            return resource;
+        }
+
         var content = await File.ReadAllTextAsync(resource.Path);
         resource.Content = content;
         return resource;

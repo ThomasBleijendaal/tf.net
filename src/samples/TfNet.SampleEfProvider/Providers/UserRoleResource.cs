@@ -5,7 +5,7 @@ using TfNet.Serialization;
 namespace TfNet.SampleEfProvider.Providers;
 
 [SchemaVersion(1)]
-[MessagePackObject]
+[MessagePackObject(SuppressSourceGeneration = true)]
 public class UserRoleResource
 {
     [Key("id")]

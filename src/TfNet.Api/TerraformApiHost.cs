@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Trace;
+using TfNet.Extensions;
 using TfNet.PluginCore.Services;
 using TfNet.Providers.Data;
 using TfNet.Providers.Function;
@@ -67,7 +68,8 @@ public static class HostBuilderExtensions
                 webBuilder.ConfigureServices(services =>
                 {
                     services.AddOptions<TerraformPluginHostOptions>().ValidateDataAnnotations();
-                    services.AddSingleton<ResourceRegistry>();
+
+                    services.AddCoreServices();
 
                     services.AddGrpc();
 

@@ -22,6 +22,9 @@ internal class Startup
         services.AddTransient<ITerraformTypeBuilder, TerraformTypeBuilder>();
         services.AddTransient<IDynamicValueSerializer, DefaultDynamicValueSerializer>();
 
+        services.AddOptions<TerraformPluginHostOptions>().ValidateDataAnnotations();
+        services.AddCoreServices();
+
         var otel = services.AddOpenTelemetry();
 
         // TODO: make configurable

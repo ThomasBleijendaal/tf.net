@@ -5,6 +5,6 @@ provider "example.com/example/sampleprovider" {
   version     = "1.0.0"
   constraints = "1.0.0"
   hashes = [
-    "h1:A5UjdlFRF3qpNfdhtj2vL16/FwOMgDUVlsjGssyuMjg=",
+    "h1:93N5YLRT5Zl/a/D6BIMxyX5sGlEMfznFP5Unfs/xZtE=",
   ]
 }

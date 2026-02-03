@@ -2,7 +2,7 @@
 
 public class ValidationResult
 {
-    public static ValidationResult? Success = null;
+    public static readonly ValidationResult? Success = null;
 
     public List<ValidationError> ValidationErrors { get; init; } = [];
 }
