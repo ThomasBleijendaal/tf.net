@@ -1,39 +1,39 @@
-﻿using MessagePack;
-using MessagePack.Formatters;
+﻿using Nerdbank.MessagePack;
+using PolyType.ReflectionProvider;
 
 namespace TfNet.Serialization;
 
-public sealed class ComputedValueFormatter<T> : IMessagePackFormatter<T>
+public sealed class ComputedValueFormatter<T> : MessagePackConverter<T>
 {
-    public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    public override T? Read(ref MessagePackReader reader, SerializationContext context)
     {
         if (reader.TryReadNil())
         {
             return default!;
         }
-        else if (reader.NextMessagePackType == MessagePackType.Extension && reader.TryReadExtensionFormatHeader(out var extHeader) && extHeader.TypeCode == 0)
+        else if (reader.NextMessagePackType == MessagePackType.Extension && reader.TryReadExtensionHeader(out var extHeader) && extHeader.TypeCode == 0)
         {
-            reader.Skip();
+            reader.Skip(context);
             return default!;
         }
 
-        var formatter = options.Resolver.GetFormatter<T>()
-            ?? throw new InvalidOperationException($"Cannot find message pack formatter for {typeof(T).Name}");
+        var shape = ReflectionTypeShapeProvider.Default.GetTypeShape<T>();
+        var converter = context.GetConverter(shape);
 
-        return formatter.Deserialize(ref reader, options);
+        return converter.Read(ref reader, context);
     }
 
-    public void Serialize(ref MessagePackWriter writer, T value, MessagePackSerializerOptions options)
+    public override void Write(ref MessagePackWriter writer, in T? value, SerializationContext context)
     {
         if (EqualityComparer<T>.Default.Equals(value, default))
         {
-            writer.WriteExtensionFormat(new ExtensionResult(0, new byte[1]));
+            writer.Write(new ExtensionHeader(0, 1));
             return;
         }
 
-        var formatter = options.Resolver.GetFormatter<T>()
-            ?? throw new InvalidOperationException($"Cannot find message pack formatter for {typeof(T).Name}");
+        var shape = ReflectionTypeShapeProvider.Default.GetTypeShape<T>();
+        var converter = context.GetConverter(shape);
 
-        formatter.Serialize(ref writer, value, options);
+        converter.Write(ref writer, value, context);
     }
 }

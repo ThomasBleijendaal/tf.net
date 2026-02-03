@@ -1,8 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Reflection;
+using PolyType;
 using TfNet.Resources;
-using KeyAttribute = MessagePack.KeyAttribute;
-using MessagePackObject = MessagePack.MessagePackObjectAttribute;
 
 namespace TfNet.Schemas.Types;
 
@@ -136,16 +135,24 @@ internal class TerraformTypeBuilder : ITerraformTypeBuilder
 
     private TerraformType GetTerraformTypeAsObject(Type t)
     {
-        if (t.GetCustomAttribute<MessagePackObject>() == null)
-        {
-            throw new InvalidOperationException($"Type {t.Name} is represented as a Terraform object, but is missing a {nameof(MessagePackObject)} attribute.");
-        }
+        // TODO: should this be restored? and what attribute?
+        //if (t.GetCustomAttribute<MessagePackObject>() == null)
+        //{
+        //    throw new InvalidOperationException($"Type {t.Name} is represented as a Terraform object, but is missing a {nameof(MessagePackObject)} attribute.");
+        //}
 
         var properties = t.GetProperties();
         var attrTypes = properties.ToDictionary(
-            prop => prop.GetCustomAttribute<KeyAttribute>()?.StringKey ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {prop.Name} in {t.Name}."),
+            prop => prop.GetCustomAttribute<PropertyShapeAttribute>()?.Name
+                ?? throw new InvalidOperationException($"Missing {nameof(PropertyShapeAttribute)} on {prop.Name} in {t.Name}."),
             prop => GetTerraformType(prop.PropertyType));
-        var optionalAttrs = properties.Where(x => !IsRequiredAttribute(x)).Select(x => x.GetCustomAttribute<KeyAttribute>()?.StringKey ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {x.Name} in {t.Name}.")).ToList();
+
+        var optionalAttrs = properties
+            .Where(x => !IsRequiredAttribute(x))
+            .Select(x => x.GetCustomAttribute<PropertyShapeAttribute>()?.Name
+                ?? throw new InvalidOperationException($"Missing {nameof(PropertyShapeAttribute)} on {x.Name} in {t.Name}."))
+            .ToList();
+
         return new TerraformType.TfObject(attrTypes.ToImmutableDictionary(), optionalAttrs.ToImmutableHashSet());
     }
 

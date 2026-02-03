@@ -6,7 +6,7 @@ internal static class DynamicValueSerializerExtensions
 {
     extension(IDynamicValueSerializer serializer)
     {
-        public T DeserializeDynamicValue<T>(DynamicValue value)
+        public T? DeserializeDynamicValue<T>(DynamicValue value)
         {
             if (!value.Msgpack.IsEmpty)
             {

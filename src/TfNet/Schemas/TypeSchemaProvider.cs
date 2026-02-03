@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
+using PolyType;
 using TfNet.Resources;
 using TfNet.Schemas.Types;
 using Tfplugin6;
-using KeyAttribute = MessagePack.KeyAttribute;
 
 namespace TfNet.Schemas;
 
@@ -70,7 +70,7 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
 
         foreach (var property in properties)
         {
-            var key = property.GetCustomAttribute<KeyAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {property.Name} in {type.Name}.");
+            var key = property.GetCustomAttribute<PropertyShapeAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(PropertyShapeAttribute)} on {property.Name} in {type.Name}.");
 
             var description = property.GetCustomAttribute<DescriptionAttribute>();
             var required = TerraformTypeBuilder.IsRequiredAttribute(property);
@@ -87,7 +87,7 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
 
                 block.Attributes.Add(new Schema.Types.Attribute
                 {
-                    Name = key.StringKey,
+                    Name = key.Name,
                     Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
                     Description = description?.MarkdownDescription ?? "",
                     DescriptionKind = StringKind.Markdown,
@@ -117,7 +117,7 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
 
                 block.BlockTypes.Add(new Schema.Types.NestedBlock
                 {
-                    TypeName = key.StringKey,
+                    TypeName = key.Name,
                     MinItems = nestedBlock.MinItems,
                     MaxItems = nestedBlock.MaxItems,
                     Nesting = nesting,

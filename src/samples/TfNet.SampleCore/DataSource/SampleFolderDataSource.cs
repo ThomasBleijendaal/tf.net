@@ -1,22 +1,23 @@
-﻿using MessagePack;
+﻿using Nerdbank.MessagePack;
+using PolyType;
 using TfNet.Resources;
 using TfNet.Serialization;
 
 namespace TfNet.SampleCore.DataSource;
 
 [SchemaVersion(1)]
-[MessagePackObject(SuppressSourceGeneration = true)] // for now disable source generation due to compile error
+//[GenerateShape]
 public class SampleFolderDataSource
 {
-    [Key("path")]
+    [PropertyShape(Name = "path")]
     [Description("Path")]
     [Required]
-    [MessagePackFormatter(typeof(ComputedValueFormatter<string?>))]
+    [MessagePackConverter(typeof(ComputedValueFormatter<string?>))]
     public string? Path { get; set; } = null!;
 
-    [Key("files")]
+    [PropertyShape(Name = "files")]
     [Description("Files in folder")]
     [Computed]
-    [MessagePackFormatter(typeof(ComputedValueFormatter<string?[]?>))]
+    [MessagePackConverter(typeof(ComputedValueFormatter<string?[]?>))]
     public string?[]? Files { get; set; }
 }
