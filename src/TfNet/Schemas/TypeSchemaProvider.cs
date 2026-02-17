@@ -75,6 +75,7 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
             var description = property.GetCustomAttribute<DescriptionAttribute>();
             var required = TerraformTypeBuilder.IsRequiredAttribute(property);
             var isComputed = property.GetCustomAttribute<ComputedAttribute>() != null;
+            var isSensitive = property.GetCustomAttribute<SensitiveAttribute>() != null;
             var nestedBlock = property.GetCustomAttribute<NestedBlockAttribute>();
 
             if (nestedBlock == null)
@@ -93,7 +94,9 @@ internal class TypeSchemaProvider<T> : ISchemaProvider
                     DescriptionKind = StringKind.Markdown,
                     Optional = !required,
                     Required = required,
-                    Computed = isComputed
+                    Computed = isComputed,
+                    Sensitive = isSensitive
+                    // TODO: add write only
                 });
             }
             else

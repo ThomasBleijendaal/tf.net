@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TfNet.Providers.Data;
+using TfNet.Providers.EphemeralResource;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Providers.Resource;
 using TfNet.Providers.Validation;
@@ -14,22 +15,27 @@ internal class ResourceRegistry
     private readonly Dictionary<string, ValidatorRegistryRegistration> _validatorRegistrations;
     private readonly Dictionary<string, ResourceRegistryRegistration> _resourceRegistrations;
     private readonly Dictionary<string, DataSourceRegistryRegistration> _dataSourceRegistrations;
+    private readonly Dictionary<string, EphemeralResourceRegistryRegistration> _ephemeralResourceRegistrations;
 
     public ResourceRegistry(
         IEnumerable<ISchemaProvider> schemaProviders,
         IEnumerable<ValidatorRegistryRegistration> validatorRegistrations,
         IEnumerable<ResourceRegistryRegistration> resourceRegistrations,
-        IEnumerable<DataSourceRegistryRegistration> dataSourceRegistrations)
+        IEnumerable<DataSourceRegistryRegistration> dataSourceRegistrations,
+        IEnumerable<EphemeralResourceRegistryRegistration> ephemeralResourceRegistrations)
     {
         _schemaProviders = schemaProviders;
         _validatorRegistrations = validatorRegistrations.ToDictionary(x => x.ResourceName);
         _resourceRegistrations = resourceRegistrations.ToDictionary(x => x.ResourceName);
         _dataSourceRegistrations = dataSourceRegistrations.ToDictionary(x => x.ResourceName);
+        _ephemeralResourceRegistrations = ephemeralResourceRegistrations.ToDictionary(x => x.ResourceName);
     }
 
     public IAsyncEnumerable<Registration<Schema>> GetSchemasAsync() => GetSchemasOfTypeAsync(SchemaType.Resource);
 
     public IAsyncEnumerable<Registration<Schema>> GetDataSchemasAsync() => GetSchemasOfTypeAsync(SchemaType.DataResource);
+
+    public IAsyncEnumerable<Registration<Schema>> GetEphemeralSchemasAsync() => GetSchemasOfTypeAsync(SchemaType.EphemeralResource);
 
     public IValidationProviderHost? GetValidationProvider(IServiceProvider sp, string name)
     {
@@ -65,6 +71,11 @@ internal class ResourceRegistry
     public IDataSourceProviderHost? GetDataSourceProvider(IServiceProvider sp, string name)
         => _dataSourceRegistrations.TryGetValue(name, out var registration)
             ? Construct<IDataSourceProviderHost>(sp, typeof(DataSourceProviderHost<>).MakeGenericType(registration.Type))
+            : null;
+
+    public IEphemeralResourceProviderHost? GetEphemeralResourceProvider(IServiceProvider sp, string name)
+        => _ephemeralResourceRegistrations.TryGetValue(name, out var registration)
+            ? Construct<IEphemeralResourceProviderHost>(sp, typeof(EphemeralResourceProviderHost<>).MakeGenericType(registration.Type))
             : null;
 
     public Dictionary<string, Type> DataTypes { get; } = new Dictionary<string, Type>();

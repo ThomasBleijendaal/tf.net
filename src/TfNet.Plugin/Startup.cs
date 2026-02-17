@@ -10,6 +10,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 using TfNet.PluginCore.Services;
 using TfNet.Providers.Data;
+using TfNet.Providers.EphemeralResource;
 using TfNet.Providers.Function;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Providers.Resource;
@@ -29,6 +30,7 @@ internal class Startup
         services.AddTransient(typeof(ProviderConfigurationHost<>));
         services.AddTransient(typeof(ResourceProviderHost<>));
         services.AddTransient(typeof(DataSourceProviderHost<>));
+        services.AddTransient(typeof(EphemeralResourceProviderHost<>));
         services.AddTransient(typeof(FunctionProviderHost<,>));
         services.AddTransient(typeof(IResourceUpgrader<>), typeof(DefaultResourceUpgrader<>));
         services.AddTransient<IDynamicValueSerializer, DefaultDynamicValueSerializer>();

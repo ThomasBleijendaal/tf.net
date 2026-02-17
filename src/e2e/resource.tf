@@ -12,6 +12,10 @@ resource "sampleprovider_file" "demo_file" {
   }
 }
 
+ephemeral "sampleprovider_password" "password" {
+  length = 10
+}
+
 resource "sampleprovider_file" "demo_file_2" {
   path = "./file2.txt"
   content = "fdsa"
