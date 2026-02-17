@@ -1,10 +1,9 @@
-﻿using MessagePack;
+﻿using PolyType;
 
 namespace TfNet.SampleCore.Function;
 
-[MessagePackObject]
 public class ConcatResponse
 {
-    [Key("result")]
+    [PropertyShape(Name = "result")]
     public string? Result { get; set; }
 }

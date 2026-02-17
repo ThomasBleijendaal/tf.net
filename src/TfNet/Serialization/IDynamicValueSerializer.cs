@@ -11,4 +11,6 @@ public interface IDynamicValueSerializer
     T? DeserializeMsgPack<T>(ReadOnlyMemory<byte> value);
 
     byte[] SerializeMsgPack<T>(T value);
+
+    byte[] SerializeMsgPack(Type type, object value);
 }

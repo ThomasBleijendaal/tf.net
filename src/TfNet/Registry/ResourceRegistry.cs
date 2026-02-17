@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TfNet.Extensions;
 using TfNet.Providers.Data;
 using TfNet.Providers.ProviderConfig;
 using TfNet.Providers.Resource;

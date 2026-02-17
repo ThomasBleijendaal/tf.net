@@ -27,7 +27,7 @@ public sealed class ComputedValueFormatter<T> : MessagePackConverter<T>
     {
         if (EqualityComparer<T>.Default.Equals(value, default))
         {
-            writer.Write(new ExtensionHeader(0, 1));
+            writer.Write(new Extension(0, new byte[1]));
             return;
         }
 

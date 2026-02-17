@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using MessagePack;
+using PolyType;
 using TfNet.Extensions;
 
 namespace TfNet.Models;
@@ -18,8 +18,8 @@ public record AttributePath(params string[] Path)
         var propertyType = type.GetProperty(names[0])
             ?? throw new ArgumentException($"Property {names[0]} not found", nameof(names));
 
-        var attribute = propertyType.GetCustomAttribute<KeyAttribute>();
-        var name = attribute?.StringKey ?? names[0].ToFirstLetterLower();
+        var attribute = propertyType.GetCustomAttribute<PropertyShapeAttribute>();
+        var name = attribute?.Name ?? names[0].ToFirstLetterLower();
 
         if (names.Length == 1)
         {

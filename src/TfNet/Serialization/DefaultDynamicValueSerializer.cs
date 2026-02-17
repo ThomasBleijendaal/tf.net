@@ -36,10 +36,17 @@ public class DefaultDynamicValueSerializer : IDynamicValueSerializer
         return _serializer.DeserializeObject(ref reader, shape, default);
     }
 
-    byte[] IDynamicValueSerializer.SerializeMsgPack<T>(T value)
+    public byte[] SerializeMsgPack<T>(T value)
     {
         var shape = ReflectionTypeShapeProvider.Default.GetTypeShape<T>();
 
         return _serializer.Serialize(value, shape);
+    }
+
+    public byte[] SerializeMsgPack(Type type, object value)
+    {
+        var shape = ReflectionTypeShapeProvider.Default.GetTypeShape(type);
+
+        return _serializer.SerializeObject(value, shape);
     }
 }

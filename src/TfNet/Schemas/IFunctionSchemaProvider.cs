@@ -2,7 +2,7 @@
 
 namespace TfNet.Schemas;
 
-public interface IFunctionSchemaProvider
+internal interface IFunctionSchemaProvider
 {
     /// <summary>
     /// Function name this FunctionSchemaProvider is associated with.

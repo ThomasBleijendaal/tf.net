@@ -1,24 +1,24 @@
-﻿using MessagePack;
+﻿using Nerdbank.MessagePack;
+using PolyType;
 using TfNet.Resources;
 using TfNet.Serialization;
 
 namespace TfNet.SampleEfProvider.Providers;
 
 [SchemaVersion(1)]
-[MessagePackObject(SuppressSourceGeneration = true)]
 public class UserResource
 {
-    [Key("id")]
+    [PropertyShape(Name = "id")]
     [Computed]
-    [MessagePackFormatter(typeof(ComputedValueFormatter<string?>))]
+    [MessagePackConverter(typeof(ComputedValueFormatter<string?>))]
     public string? Id { get; set; }
 
-    [Key("name")]
+    [PropertyShape(Name = "name")]
     public string? Name { get; set; }
 
-    [Key("email")]
+    [PropertyShape(Name = "email")]
     public string? Email { get; set; }
 
-    [Key("roles")]
+    [PropertyShape(Name = "roles")]
     public int[]? Roles { get; set; }
 }

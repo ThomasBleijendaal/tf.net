@@ -35,6 +35,20 @@ internal class ResourceProviderHost<T> : IResourceProviderHost
     public async Task<ReadResource.Types.Response> ReadResourceAsync(ReadResource.Types.Request request)
     {
         var current = _serializer.DeserializeDynamicValue<T>(request.CurrentState);
+        if (current == null)
+        {
+            return new ReadResource.Types.Response
+            {
+                Diagnostics =
+                {
+                    new Diagnostic
+                    {
+                        Summary = "Failed to deserialize current state",
+                        Severity = Diagnostic.Types.Severity.Invalid
+                    }
+                }
+            };
+        }
 
         var read = await _resourceProvider.ReadAsync(current);
         var readSerialized = _serializer.SerializeDynamicValue(read);
@@ -49,6 +63,20 @@ internal class ResourceProviderHost<T> : IResourceProviderHost
     {
         var prior = _serializer.DeserializeDynamicValue<T>(request.PriorState);
         var proposed = _serializer.DeserializeDynamicValue<T>(request.ProposedNewState);
+        if (proposed == null)
+        {
+            return new PlanResourceChange.Types.Response
+            {
+                Diagnostics =
+                {
+                    new Diagnostic
+                    {
+                        Summary = "Failed to deserialize proposed state",
+                        Severity = Diagnostic.Types.Severity.Invalid
+                    }
+                }
+            };
+        }
 
         var planned = await _resourceProvider.PlanAsync(prior, proposed);
         var plannedSerialized = _serializer.SerializeDynamicValue(planned.Value);
@@ -67,11 +95,25 @@ internal class ResourceProviderHost<T> : IResourceProviderHost
     {
         var prior = _serializer.DeserializeDynamicValue<T>(request.PriorState);
         var planned = _serializer.DeserializeDynamicValue<T>(request.PlannedState);
+        if (prior == null && planned == null)
+        {
+            return new ApplyResourceChange.Types.Response
+            {
+                Diagnostics =
+                {
+                    new Diagnostic
+                    {
+                        Summary = "Failed to deserialize prior state",
+                        Severity = Diagnostic.Types.Severity.Invalid
+                    }
+                }
+            };
+        }
 
         if (planned == null)
         {
             // Delete
-            await _resourceProvider.DeleteAsync(prior);
+            await _resourceProvider.DeleteAsync(prior!);
             return new ApplyResourceChange.Types.Response();
         }
         else if (prior == null)
