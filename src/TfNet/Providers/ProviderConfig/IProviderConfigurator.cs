@@ -2,5 +2,5 @@
 
 public interface IProviderConfigurator<T>
 {
-    Task ConfigureAsync(T config);
+    Task ConfigureAsync(T? config);
 }

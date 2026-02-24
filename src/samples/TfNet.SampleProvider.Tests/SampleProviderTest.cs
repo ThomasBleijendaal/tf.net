@@ -50,7 +50,7 @@ public class SampleProviderTest
 
         await File.WriteAllTextAsync(resourcePath, $$"""
             resource "{{ProviderName}}_file" "demo_file" {
-                path = "{{testFilePath.Replace("\\", "\\\\")}}"
+                path = "{{testFilePath.Replace("\\", "/")}}"
                 content = "{{fileContent}}"
             }
             """);

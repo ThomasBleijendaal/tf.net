@@ -23,21 +23,21 @@ internal class DynamicFunctionSchemaProvider<TFunctionHandler> : IDynamicFunctio
 
     public IFunctionHandler Handler { get; }
 
-    public async ValueTask<Dictionary<string, IFunctionSchemaProvider>> GetFunctionSchemasAsync()
+    public async ValueTask<Dictionary<string, (FunctionSignature, IFunctionSchemaProvider)>> GetFunctionSchemasAsync()
     {
-        var result = new Dictionary<string, IFunctionSchemaProvider>();
+        var result = new Dictionary<string, (FunctionSignature, IFunctionSchemaProvider)>();
 
         var functions = await Handler.GetFunctionsAsync();
 
         foreach (var (name, signature) in functions)
         {
-            result[$"{FunctionNamePrefix}{name}"] = new FunctionSignatureSchemaProvider(name, signature, _typeBuilder);
+            result[$"{FunctionNamePrefix}{name}"] = (signature, new FunctionSignatureSchemaProvider(name, signature, _typeBuilder));
         }
 
         return result;
     }
 
-    private sealed class FunctionSignatureSchemaProvider : IFunctionSchemaProvider
+    internal sealed class FunctionSignatureSchemaProvider : IFunctionSchemaProvider
     {
         private readonly FunctionSignature _functionSignature;
         private readonly ITerraformTypeBuilder _typeBuilder;

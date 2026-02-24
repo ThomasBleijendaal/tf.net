@@ -6,5 +6,5 @@ internal interface IDynamicFunctionSchemaProvider
 
     IFunctionHandler Handler { get; }
 
-    ValueTask<Dictionary<string, IFunctionSchemaProvider>> GetFunctionSchemasAsync();
+    ValueTask<Dictionary<string, (FunctionSignature, IFunctionSchemaProvider)>> GetFunctionSchemasAsync();
 }

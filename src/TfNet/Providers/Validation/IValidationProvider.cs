@@ -10,5 +10,5 @@ public interface IValidationProvider<T>
     /// <typeparam name="T"></typeparam>
     /// <param name="value"></param>
     /// <returns></returns>
-    Task<ValidationResult?> ValidateAsync(T value);
+    Task<ValidationResult?> ValidateAsync(T? value);
 }

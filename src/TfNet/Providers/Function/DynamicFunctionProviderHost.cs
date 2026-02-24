@@ -37,7 +37,7 @@ internal class DynamicFunctionProviderHost : IFunctionProviderHost
 
         var response = await _functionRegistration.Handler.HandleFunctionCallAsync(_functionRegistration.HandlerFunctionName, req);
 
-        var result = _serializer.SerializeDynamicValue(response);
+        var result = _serializer.SerializeDynamicValue(_functionRegistration.FunctionSignature.Response, response);
 
         return new CallFunction.Types.Response
         {

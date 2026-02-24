@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
 using Google.Protobuf;
+using PolyType;
 using TfNet.Schemas.Types;
 using Tfplugin6;
-using KeyAttribute = MessagePack.KeyAttribute;
 
 namespace TfNet.Schemas;
 
@@ -69,7 +69,7 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionSchemaProv
 
         foreach (var property in properties)
         {
-            var key = property.GetCustomAttribute<KeyAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(KeyAttribute)} on {property.Name} in {requestType.Name}.");
+            var key = property.GetCustomAttribute<PropertyShapeAttribute>() ?? throw new InvalidOperationException($"Missing {nameof(PropertyShapeAttribute)} on {property.Name} in {requestType.Name}.");
 
             var description = property.GetCustomAttribute<DescriptionAttribute>();
             var required = TerraformTypeBuilder.IsRequiredAttribute(property);
@@ -82,7 +82,7 @@ internal class FunctionSchemaProvider<TRequest, TResponse> : IFunctionSchemaProv
 
             function.Parameters.Add(new Function.Types.Parameter
             {
-                Name = key.StringKey,
+                Name = key.Name,
                 Type = ByteString.CopyFromUtf8(terraformType.ToJson()),
                 Description = description?.Description ?? "",
                 AllowNullValue = !required && !property.PropertyType.IsValueType,

@@ -1,13 +1,12 @@
-﻿using MessagePack;
+﻿using PolyType;
 
 namespace TfNet.SampleCore.Function;
 
-[MessagePackObject]
 public class ConcatRequest
 {
-    [Key("parameter1")]
+    [PropertyShape(Name = "parameter1")]
     public string? Parameter1 { get; set; }
 
-    [Key("parameter2")]
+    [PropertyShape(Name = "parameter2")]
     public string? Parameter2 { get; set; }
 }

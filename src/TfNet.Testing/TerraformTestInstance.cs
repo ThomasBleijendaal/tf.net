@@ -32,12 +32,41 @@ class TerraformTestInstance : ITerraformTestInstance
             RedirectStandardError = true,
         };
 
-        startInfo.EnvironmentVariables.Add("TF_REATTACH_PROVIDERS", $@"{{""example.com/example/{_providerName}"":{{""Protocol"":""grpc"",""ProtocolVersion"":6,""Pid"":{Environment.ProcessId},""Test"":true,""Addr"":{{""Network"":""tcp"",""String"":""127.0.0.1:{_port}""}}}}}}");
+        var provider = $$"""
+        {
+            "example.com/example/{{_providerName}}":
+            {
+                "Protocol": "grpc",
+                "ProtocolVersion": 6,
+                "Pid": {{Environment.ProcessId}},
+                "Test": true,
+                "Addr": 
+                {
+                    "Network": "tcp",
+                    "String": "127.0.0.1:{{_port}}"
+                }
+            }
+        }
+        """;
+
+        startInfo.EnvironmentVariables.Add("TF_REATTACH_PROVIDERS", provider);
         var p = Process.Start(startInfo)!;
 
         var output = new StringBuilder();
-        p.OutputDataReceived += (sender, e) => output.AppendLine(e.Data);
-        p.ErrorDataReceived += (sender, e) => output.AppendLine(e.Data);
+        p.OutputDataReceived += (sender, e) =>
+        {
+            lock (output)
+            {
+                output.AppendLine(e.Data);
+            }
+        };
+        p.ErrorDataReceived += (sender, e) =>
+        {
+            lock (output)
+            {
+                output.AppendLine(e.Data);
+            }
+        };
         p.BeginOutputReadLine();
         p.BeginErrorReadLine();
 

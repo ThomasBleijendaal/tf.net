@@ -37,13 +37,17 @@ internal class FunctionRegistry : IAsyncInitialized
         {
             var functions = await provider.GetFunctionSchemasAsync();
 
-            foreach (var (name, functionProvider) in functions)
+            foreach (var (name, (signature, functionProvider)) in functions)
             {
                 _functionProviders[name] = functionProvider;
 
                 var handlerFunctionName = name.Replace(provider.FunctionNamePrefix, "");
 
-                _functionRegistrations[name] = new DynamicFunctionRegistryRegistration(name, handlerFunctionName, provider.Handler);
+                _functionRegistrations[name] = new DynamicFunctionRegistryRegistration(
+                    name,
+                    handlerFunctionName,
+                    signature,
+                    provider.Handler);
 
                 var function = await functionProvider.GetFunctionSchemaAsync();
 
