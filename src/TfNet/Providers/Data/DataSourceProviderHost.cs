@@ -19,6 +19,20 @@ internal class DataSourceProviderHost<T> : IDataSourceProviderHost
     public async Task<ReadDataSource.Types.Response> ReadDataSourceAsync(ReadDataSource.Types.Request request)
     {
         var current = _serializer.DeserializeDynamicValue<T>(request.Config);
+        if (current == null)
+        {
+            return new ReadDataSource.Types.Response
+            {
+                Diagnostics =
+                {
+                    new Diagnostic
+                    {
+                        Summary = "Failed to deserialize current state",
+                        Severity = Diagnostic.Types.Severity.Invalid
+                    }
+                }
+            };
+        }
 
         var read = await _dataSourceProvider.ReadAsync(current);
         var readSerialized = _serializer.SerializeDynamicValue(read);

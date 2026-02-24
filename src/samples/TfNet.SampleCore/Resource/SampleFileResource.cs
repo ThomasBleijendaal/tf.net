@@ -7,7 +7,7 @@ namespace TfNet.SampleCore.Resource;
 
 [SchemaVersion(1)]
 [Description("Sample file")]
-public class SampleFileResource
+public record SampleFileResource
 {
     [PropertyShape(Name = "id")]
     [Computed]
