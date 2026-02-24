@@ -135,12 +135,6 @@ internal class TerraformTypeBuilder : ITerraformTypeBuilder
 
     private TerraformType GetTerraformTypeAsObject(Type t)
     {
-        // TODO: should this be restored? and what attribute?
-        //if (t.GetCustomAttribute<MessagePackObject>() == null)
-        //{
-        //    throw new InvalidOperationException($"Type {t.Name} is represented as a Terraform object, but is missing a {nameof(MessagePackObject)} attribute.");
-        //}
-
         var properties = t.GetProperties();
         var attrTypes = properties.ToDictionary(
             prop => prop.GetCustomAttribute<PropertyShapeAttribute>()?.Name
