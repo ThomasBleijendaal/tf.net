@@ -6,8 +6,7 @@ using TfNet.Serialization;
 namespace TfNet.SampleCore.DataSource;
 
 [SchemaVersion(1)]
-//[GenerateShape]
-public class SampleFolderDataSource
+public record SampleFolderDataSource
 {
     [PropertyShape(Name = "path")]
     [Description("Path")]

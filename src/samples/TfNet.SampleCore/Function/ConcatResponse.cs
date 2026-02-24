@@ -1,8 +1,10 @@
 ﻿using PolyType;
+using TfNet.Resources;
 
 namespace TfNet.SampleCore.Function;
 
-public class ConcatResponse
+[SchemaVersion(1)]
+public record ConcatResponse
 {
     [PropertyShape(Name = "result")]
     public string? Result { get; set; }

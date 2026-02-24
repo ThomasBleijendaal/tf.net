@@ -36,9 +36,6 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
     // unimplemented stubs
 
-    public override Task<CloseEphemeralResource.Types.Response> CloseEphemeralResource(CloseEphemeralResource.Types.Request request, ServerCallContext context)
-        => Task.FromResult(new Tfplugin6.CloseEphemeralResource.Types.Response());
-
     public override Task<ConfigureStateStore.Types.Response> ConfigureStateStore(ConfigureStateStore.Types.Request request, ServerCallContext context)
         => Task.FromResult(new Tfplugin6.ConfigureStateStore.Types.Response());
 
@@ -66,17 +63,11 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
     public override Task<MoveResourceState.Types.Response> MoveResourceState(MoveResourceState.Types.Request request, ServerCallContext context)
         => Task.FromResult(new Tfplugin6.MoveResourceState.Types.Response());
 
-    public override Task<OpenEphemeralResource.Types.Response> OpenEphemeralResource(OpenEphemeralResource.Types.Request request, ServerCallContext context)
-        => Task.FromResult(new Tfplugin6.OpenEphemeralResource.Types.Response());
-
     public override Task<PlanAction.Types.Response> PlanAction(PlanAction.Types.Request request, ServerCallContext context)
         => Task.FromResult(new Tfplugin6.PlanAction.Types.Response());
 
     public override Task ReadStateBytes(ReadStateBytes.Types.Request request, IServerStreamWriter<ReadStateBytes.Types.Response> responseStream, ServerCallContext context)
         => Task.CompletedTask;
-
-    public override Task<RenewEphemeralResource.Types.Response> RenewEphemeralResource(RenewEphemeralResource.Types.Request request, ServerCallContext context)
-        => Task.FromResult(new Tfplugin6.RenewEphemeralResource.Types.Response());
 
     public override Task<UnlockState.Types.Response> UnlockState(UnlockState.Types.Request request, ServerCallContext context)
         => Task.FromResult(new Tfplugin6.UnlockState.Types.Response());
@@ -86,9 +77,6 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
 
     public override Task<ValidateActionConfig.Types.Response> ValidateActionConfig(ValidateActionConfig.Types.Request request, ServerCallContext context)
         => Task.FromResult(new Tfplugin6.ValidateActionConfig.Types.Response());
-
-    public override Task<ValidateEphemeralResourceConfig.Types.Response> ValidateEphemeralResourceConfig(ValidateEphemeralResourceConfig.Types.Request request, ServerCallContext context)
-        => Task.FromResult(new Tfplugin6.ValidateEphemeralResourceConfig.Types.Response());
 
     public override Task<ValidateListResourceConfig.Types.Response> ValidateListResourceConfig(ValidateListResourceConfig.Types.Request request, ServerCallContext context)
         => Task.FromResult(new Tfplugin6.ValidateListResourceConfig.Types.Response());

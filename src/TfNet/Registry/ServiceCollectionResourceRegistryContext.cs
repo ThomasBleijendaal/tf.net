@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TfNet.Extensions;
 using TfNet.Providers.Data;
+using TfNet.Providers.EphemeralResource;
 using TfNet.Providers.Function;
 using TfNet.Providers.Resource;
 using TfNet.Schemas;
@@ -38,6 +39,18 @@ internal class ServiceCollectionResourceRegistryContext : IResourceRegistryConte
         _services.AddSingleton(new DataSourceRegistryRegistration(dataSourceName, typeof(T)));
 
         return new ServiceCollectionDataSourceRegisterer<T>(_services, dataSourceName);
+    }
+
+    public IResourceRegisterer<T> RegisterEphemeralResource<T>(string ephemeralResourceName)
+    {
+        EnsureValidType<T>();
+
+        _services.AddSingleton<ISchemaProvider>(
+            sp => sp.BuildService<TypeSchemaProvider<T>>([ephemeralResourceName, SchemaType.EphemeralResource]));
+
+        _services.AddSingleton(new EphemeralResourceRegistryRegistration(ephemeralResourceName, typeof(T)));
+
+        return new ServiceCollectionResourceRegisterer<T>(_services, ephemeralResourceName);
     }
 
     public IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName)

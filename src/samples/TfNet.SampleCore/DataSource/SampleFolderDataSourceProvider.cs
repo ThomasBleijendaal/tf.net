@@ -8,7 +8,7 @@ public class SampleFolderDataSourceProvider : IDataSourceProvider<SampleFolderDa
     {
         var files = Directory.GetFiles(request.Path ?? "./");
 
-        return Task.FromResult(new SampleFolderDataSource
+        return Task.FromResult(request with
         {
             Path = request.Path,
             Files = files

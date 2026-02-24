@@ -49,6 +49,12 @@ internal partial class Terraform6ProviderService : Provider.ProviderBase
             res.DataSourceSchemas.Add(key, schema);
         }
 
+        var ephemeralSchemas = await _resourceRegistry.GetEphemeralSchemasAsync().ToArrayAsync();
+        foreach (var (key, schema) in ephemeralSchemas)
+        {
+            res.EphemeralResourceSchemas.Add(key, schema);
+        }
+
         var functions = _functionRegistry.GetFunctions();
         foreach (var (key, function) in functions)
         {

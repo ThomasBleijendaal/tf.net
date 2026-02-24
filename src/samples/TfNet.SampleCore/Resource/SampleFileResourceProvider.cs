@@ -27,9 +27,11 @@ public class SampleFileResourceProvider : IResourceProvider<SampleFileResource>
 
     public async Task<SampleFileResource> CreateAsync(SampleFileResource planned)
     {
-        planned.Id = Guid.NewGuid().ToString();
         await File.WriteAllTextAsync(planned.Path, BuildContent(planned.Content));
-        return planned;
+        return planned with
+        {
+            Id = Guid.NewGuid().ToString()
+        };
     }
 
     public Task DeleteAsync(SampleFileResource resource)
@@ -45,9 +47,10 @@ public class SampleFileResourceProvider : IResourceProvider<SampleFileResource>
             return resource;
         }
 
-        var content = await File.ReadAllTextAsync(resource.Path);
-        resource.Content = content;
-        return resource;
+        return resource with
+        {
+            Content = await File.ReadAllTextAsync(resource.Path)
+        };
     }
 
     public async Task<SampleFileResource> UpdateAsync(SampleFileResource? prior, SampleFileResource planned)

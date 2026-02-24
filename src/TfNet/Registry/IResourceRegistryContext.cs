@@ -8,6 +8,8 @@ public interface IResourceRegistryContext
 
     IDataSourceRegisterer<T> RegisterDataSource<T>(string dataSourceName);
 
+    IResourceRegisterer<T> RegisterEphemeralResource<T>(string ephemeralResourceName);
+
     IFunctionRegisterer<TRequest> RegisterFunction<TRequest, TResponse>(string functionName)
         where TRequest : new();
 

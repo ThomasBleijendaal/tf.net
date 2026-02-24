@@ -4,5 +4,6 @@ public enum SchemaType
 {
     Provider,
     Resource,
-    DataResource
+    DataResource,
+    EphemeralResource
 }

@@ -13,4 +13,3 @@ public class DescriptionAttribute : Attribute
 
     public string MarkdownDescription { get; set; }
 }
-

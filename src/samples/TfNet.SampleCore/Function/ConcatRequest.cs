@@ -1,8 +1,10 @@
 ﻿using PolyType;
+using TfNet.Resources;
 
 namespace TfNet.SampleCore.Function;
 
-public class ConcatRequest
+[SchemaVersion(1)]
+public record ConcatRequest
 {
     [PropertyShape(Name = "parameter1")]
     public string? Parameter1 { get; set; }
