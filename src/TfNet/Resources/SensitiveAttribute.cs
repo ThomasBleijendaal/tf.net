@@ -7,5 +7,3 @@
 public class SensitiveAttribute : Attribute
 {
 }
-
-
